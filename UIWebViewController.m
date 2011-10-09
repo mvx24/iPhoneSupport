@@ -56,6 +56,11 @@
 	self.view = webView = [[[UIWebView alloc] initWithFrame:CGRectZero] autorelease];
 }
 
+- (BOOL)shouldAutorotateToInterfaceOrientation:(UIInterfaceOrientation)interfaceOrientation
+{
+	return YES;
+}
+
 /*-------------------------------------------------------------------*/
 #pragma mark -
 #pragma mark External methods

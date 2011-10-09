@@ -11,12 +11,14 @@
 	NSString *message;
 	NSArray *hashTagArray;
 	UIViewController *viewController;
+	UIBarButtonItem *barButtonItem;
 }
 
 @property (nonatomic, retain) NSString *subject;
 @property (nonatomic, retain) NSString *message;
 @property (nonatomic, retain) NSArray *hashTagArray;
 @property (nonatomic, retain) UIViewController *viewController;
+@property (nonatomic, retain) UIBarButtonItem *barButtonItem;
 
 + (BOOL)canShare;
 
@@ -24,5 +26,6 @@
 - (void)dealloc;
 
 - (void)showActionSheetOverViewController:(UIViewController *)aViewController;
+- (void)showActionSheetOverViewController:(UIViewController *)aViewController barButtonItem:(UIBarButtonItem *)aBarButtonItem;
 
 @end

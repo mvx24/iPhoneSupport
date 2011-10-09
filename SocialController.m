@@ -13,6 +13,7 @@
 @synthesize message;
 @synthesize hashTagArray;
 @synthesize viewController;
+@synthesize barButtonItem;
 
 + (BOOL)canShare
 {
@@ -43,6 +44,7 @@
 	self.message = nil;
 	self.hashTagArray = nil;
 	self.viewController = nil;
+	self.barButtonItem = nil;
 	[super dealloc];
 }
 
@@ -53,6 +55,16 @@
 	actionSheet = [[UIActionSheet alloc] initWithTitle:@"Share" delegate:self cancelButtonTitle:@"Cancel" destructiveButtonTitle:nil otherButtonTitles:@"Email", @"Twitter", nil];
 	actionSheet.actionSheetStyle = UIActionSheetStyleBlackTranslucent;
 	[actionSheet showInView:[self.viewController view]];
+}
+
+- (void)showActionSheetOverViewController:(UIViewController *)aViewController barButtonItem:(UIBarButtonItem *)aBarButtonItem
+{
+	UIActionSheet *actionSheet;	
+	self.viewController = aViewController;
+	self.barButtonItem = aBarButtonItem;
+	actionSheet = [[UIActionSheet alloc] initWithTitle:@"Share" delegate:self cancelButtonTitle:@"Cancel" destructiveButtonTitle:nil otherButtonTitles:@"Email", @"Twitter", nil];
+	actionSheet.actionSheetStyle = UIActionSheetStyleBlackTranslucent;
+	[actionSheet showFromBarButtonItem:self.barButtonItem animated:YES];
 }
 
 - (void)mailComposeController:(MFMailComposeViewController*)controller didFinishWithResult:(MFMailComposeResult)result error:(NSError*)error
