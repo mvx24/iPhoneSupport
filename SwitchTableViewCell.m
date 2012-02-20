@@ -51,7 +51,7 @@
 	contentRect = [self.contentView bounds];
 	
 	// In this example we will never be editing, but this illustrates the appropriate pattern
-	frame = CGRectMake(contentRect.origin.x + 8.0, contentRect.origin.y + 8.0, 100.0, 26.0);
+	frame = CGRectMake(contentRect.origin.x + 8.0, contentRect.origin.y + 8.0, 200.0, 26.0);
 	label.frame = frame;
 	
 	frame = CGRectMake(contentRect.origin.x + 196.0, contentRect.origin.y + 8.0, 94.0, 27.0);

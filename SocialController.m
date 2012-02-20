@@ -9,6 +9,7 @@
 
 @implementation SocialController
 
+@synthesize title;
 @synthesize subject;
 @synthesize message;
 @synthesize hashTagArray;
@@ -40,6 +41,7 @@
 
 - (void)dealloc
 {
+	self.title = nil;
 	self.subject = nil;
 	self.message = nil;
 	self.hashTagArray = nil;
@@ -52,7 +54,7 @@
 {
 	UIActionSheet *actionSheet;	
 	self.viewController = aViewController;
-	actionSheet = [[UIActionSheet alloc] initWithTitle:@"Share" delegate:self cancelButtonTitle:@"Cancel" destructiveButtonTitle:nil otherButtonTitles:@"Email", @"Twitter", nil];
+	actionSheet = [[UIActionSheet alloc] initWithTitle:(self.title == nil)?@"Share":self.title delegate:self cancelButtonTitle:@"Cancel" destructiveButtonTitle:nil otherButtonTitles:@"Email", @"Twitter", nil];
 	actionSheet.actionSheetStyle = UIActionSheetStyleBlackTranslucent;
 	[actionSheet showInView:[self.viewController view]];
 }
@@ -62,7 +64,7 @@
 	UIActionSheet *actionSheet;	
 	self.viewController = aViewController;
 	self.barButtonItem = aBarButtonItem;
-	actionSheet = [[UIActionSheet alloc] initWithTitle:@"Share" delegate:self cancelButtonTitle:@"Cancel" destructiveButtonTitle:nil otherButtonTitles:@"Email", @"Twitter", nil];
+	actionSheet = [[UIActionSheet alloc] initWithTitle:(self.title == nil)?@"Share":self.title delegate:self cancelButtonTitle:@"Cancel" destructiveButtonTitle:nil otherButtonTitles:@"Email", @"Twitter", nil];
 	actionSheet.actionSheetStyle = UIActionSheetStyleBlackTranslucent;
 	[actionSheet showFromBarButtonItem:self.barButtonItem animated:YES];
 }
@@ -109,7 +111,7 @@
 			UIAlertView *alert;
 			alert = [[[UIAlertView alloc] initWithTitle:@"Oops" message:[NSString stringWithFormat:@"Looks like you don't have %@ installed.", buttonTitle] delegate:nil cancelButtonTitle:nil otherButtonTitles:@"OK", nil] autorelease];
 			[alert show];
-		}	
+		}
 	}
 }
 

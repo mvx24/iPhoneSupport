@@ -7,6 +7,7 @@
 
 @interface SocialController : NSObject <UIActionSheetDelegate, MFMailComposeViewControllerDelegate>
 {
+	NSString *title;
 	NSString *subject;
 	NSString *message;
 	NSArray *hashTagArray;
@@ -14,6 +15,7 @@
 	UIBarButtonItem *barButtonItem;
 }
 
+@property (nonatomic, retain) NSString *title;
 @property (nonatomic, retain) NSString *subject;
 @property (nonatomic, retain) NSString *message;
 @property (nonatomic, retain) NSArray *hashTagArray;

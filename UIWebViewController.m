@@ -78,7 +78,7 @@
 	if(theURL == nil)
 		return;
 	inLoad = YES;
-	self.view;	// load the view if needed
+	[self view];	// load the view if needed
 	url = [theURL retain];
 	webView.delegate = self;
 	webView.scalesPageToFit = YES;
@@ -93,7 +93,7 @@
 	if(thePath == nil)
 		return;
 	inLoad = YES;
-	self.view;	// load the view if needed
+	[self view];	// load the view if needed
 	file = YES;
 	scalesPage = scalesPageToFit;
 	
