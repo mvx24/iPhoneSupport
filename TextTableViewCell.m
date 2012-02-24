@@ -26,13 +26,13 @@
 		width = contentRect.size.width;
 	}
 	
-	size.width = width - 16.0;
+	size.width = width - ((UI_USER_INTERFACE_IDIOM() == UIUserInterfaceIdiomPad)?32.0:16.0);
 	size.height = 1000;
 	compSize = [str sizeWithFont:TEXT_CELL_FONT constrainedToSize:size lineBreakMode:TEXT_CELL_LINEBREAK];
 	
 	if(cell)
 	{
-		frame = CGRectMake(contentRect.origin.x + 4.0, contentRect.origin.y + 8.0, contentRect.size.width - 16.0, compSize.height);
+		frame = CGRectMake(((UI_USER_INTERFACE_IDIOM() == UIUserInterfaceIdiomPad)?16.0:14.0), 8.0, contentRect.size.width - ((UI_USER_INTERFACE_IDIOM() == UIUserInterfaceIdiomPad)?32.0:16.0), compSize.height);
 		cell.label.frame = frame;
 	}
 	
