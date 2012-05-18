@@ -97,6 +97,7 @@
 
 - (void)mailComposeController:(MFMailComposeViewController*)controller didFinishWithResult:(MFMailComposeResult)result error:(NSError*)error
 {
+	[self autorelease];
 	[self.viewController dismissModalViewControllerAnimated:YES];
 }
 
@@ -124,6 +125,7 @@
 				[mailComposerViewController setMessageBody:[NSString stringWithFormat:@"%@ %@", self.message, self.url] isHTML:NO];
 			else
 				[mailComposerViewController setMessageBody:message isHTML:NO];
+			[self retain];
 			[self.viewController presentModalViewController:mailComposerViewController animated:YES];
 		}
 		else
