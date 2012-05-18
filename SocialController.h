@@ -10,6 +10,8 @@
 	NSString *title;
 	NSString *subject;
 	NSString *message;
+	NSString *url;
+	NSString *facebookUrl;
 	NSArray *hashTagArray;
 	UIViewController *viewController;
 	UIBarButtonItem *barButtonItem;
@@ -18,6 +20,8 @@
 @property (nonatomic, retain) NSString *title;
 @property (nonatomic, retain) NSString *subject;
 @property (nonatomic, retain) NSString *message;
+@property (nonatomic, retain) NSString *url;
+@property (nonatomic, retain) NSString *facebookUrl;
 @property (nonatomic, retain) NSArray *hashTagArray;
 @property (nonatomic, retain) UIViewController *viewController;
 @property (nonatomic, retain) UIBarButtonItem *barButtonItem;
