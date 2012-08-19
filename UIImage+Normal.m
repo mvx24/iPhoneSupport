@@ -11,27 +11,36 @@
 
 - (UIImage *)normalizedImage
 {
-	return [self normalizedImageScaled:1.0];
+	return [self normalizedImageScaled:1.0 squaredWithBackgroundColor:nil];
 }
 
 // Code adapted from: http://stackoverflow.com/questions/5427656/ios-uiimagepickercontroller-result-image-orientation-after-upload
 - (UIImage *)normalizedImageScaled:(CGFloat)scale
 {
+	return [self normalizedImageScaled:scale squaredWithBackgroundColor:nil];
+}
+
+- (UIImage *)normalizedImageScaled:(CGFloat)scale squaredWithBackgroundColor:(UIColor *)squareColor
+{
 	CGImageRef imageRef;
 	UIImage *normalImage;
-	CGSize imageSize;
+	CGSize imageSize, newImageSize;
+	CGRect drawRect;
 	CGContextRef ctx;
 	CGAffineTransform transform = CGAffineTransformIdentity;
 
-	if(self.imageOrientation == UIImageOrientationUp)
+	imageSize = self.size;
+	imageRef = self.CGImage;
+	
+	if(imageSize.width == imageSize.height)
+		squareColor = nil;
+	
+	if((self.imageOrientation == UIImageOrientationUp) && !squareColor)
 	{
 		if(scale == 1.0)
 			return self;
 		return [self scaledImage:scale];
 	}
-	
-	imageSize = self.size;
-	imageRef = self.CGImage;
 	
 	switch(self.imageOrientation)
 	{
@@ -77,22 +86,53 @@
 			break;
 	}
 
-	CGAffineTransformScale(transform, scale, scale);
-	ctx = CGBitmapContextCreate(NULL, imageSize.width * scale, imageSize.height * scale, CGImageGetBitsPerComponent(imageRef), 0, CGImageGetColorSpace(imageRef), CGImageGetBitmapInfo(imageRef));
-	CGContextConcatCTM(ctx, transform);
-	switch(self.imageOrientation)
+	if(squareColor)
 	{
-		case UIImageOrientationLeft:
-		case UIImageOrientationLeftMirrored:
-		case UIImageOrientationRight:
-		case UIImageOrientationRightMirrored:
-			CGContextDrawImage(ctx, CGRectMake(0, 0, imageSize.height * scale, imageSize.width * scale), imageRef);
-			break;
-		default:
-			CGContextDrawImage(ctx, CGRectMake(0, 0, imageSize.width * scale, imageSize.height * scale), imageRef);
-			break;
+		CGFloat squareSize;
+		if(imageSize.height > imageSize.width)
+			squareSize = imageSize.height * scale;
+		else
+			squareSize = imageSize.width * scale;
+		newImageSize = CGSizeMake(squareSize, squareSize);
+		switch(self.imageOrientation)
+		{
+			case UIImageOrientationLeft:
+			case UIImageOrientationLeftMirrored:
+			case UIImageOrientationRight:
+			case UIImageOrientationRightMirrored:
+				drawRect = (CGRect){.size=CGSizeMake(imageSize.height * scale, imageSize.width * scale), .origin=CGPointMake((squareSize - (imageSize.height * scale))/2.0f, (squareSize - (imageSize.width * scale))/2.0f)};
+				break;
+			default:
+				drawRect = (CGRect){.size=CGSizeMake(imageSize.width * scale, imageSize.height * scale), .origin=CGPointMake((squareSize - (imageSize.width * scale))/2.0f, (squareSize - (imageSize.height * scale))/2.0f)};
+				break;
+		}
 	}
-
+	else
+	{
+		newImageSize = CGSizeMake(imageSize.width * scale, imageSize.height * scale);
+		drawRect = (CGRect){.size=newImageSize, .origin=CGPointZero};
+		switch(self.imageOrientation)
+		{
+			case UIImageOrientationLeft:
+			case UIImageOrientationLeftMirrored:
+			case UIImageOrientationRight:
+			case UIImageOrientationRightMirrored:
+				drawRect.size = CGSizeMake(drawRect.size.height, drawRect.size.width);
+				break;
+			default:
+				break;
+		}
+	}
+	
+	CGAffineTransformScale(transform, scale, scale);
+	ctx = CGBitmapContextCreate(NULL, newImageSize.width, newImageSize.height, CGImageGetBitsPerComponent(imageRef), 0, CGImageGetColorSpace(imageRef), CGImageGetBitmapInfo(imageRef));
+	if(squareColor)
+	{
+		CGContextSetFillColorWithColor(ctx, [squareColor CGColor]);
+		CGContextFillRect(ctx, CGRectMake(0.0f, 0.0f, newImageSize.width, newImageSize.height));
+	}
+	CGContextConcatCTM(ctx, transform);
+	CGContextDrawImage(ctx, drawRect, imageRef);
 	imageRef = CGBitmapContextCreateImage(ctx);
 	normalImage = [UIImage imageWithCGImage:imageRef];
 	CGContextRelease(ctx);

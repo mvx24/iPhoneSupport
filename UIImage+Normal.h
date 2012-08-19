@@ -11,6 +11,7 @@
 
 - (UIImage *)normalizedImage;
 - (UIImage *)normalizedImageScaled:(CGFloat)scale;
+- (UIImage *)normalizedImageScaled:(CGFloat)scale squaredWithBackgroundColor:(UIColor *)squareColor;
 - (UIImage *)scaledImage:(CGFloat)scale;
 // Squares the image, skewing if needed
 - (UIImage *)squareImage;
