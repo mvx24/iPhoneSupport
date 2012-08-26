@@ -47,7 +47,8 @@
 	for(i = 0; i < [self.tableView numberOfRowsInSection:0]; ++i)
 	{
 		cell = [self.tableView cellForRowAtIndexPath:[NSIndexPath indexPathForRow:i inSection:0]];
-		[array addObject:[NSNumber numberWithInt:i]];
+		if(cell.accessoryType == UITableViewCellAccessoryCheckmark)
+			[array addObject:[NSNumber numberWithInt:i]];
 	}
 	return [NSArray arrayWithArray:array];
 }
@@ -68,7 +69,7 @@
 {
 	UITableViewCell *cell;
 
-	cell = [[[UITableViewCell alloc] initWithFrame:CGRectZero reuseIdentifier:nil] autorelease];
+	cell = [[[UITableViewCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:nil] autorelease];
 	if(self.selectedBackgroundView)
 		cell.selectedBackgroundView = self.selectedBackgroundView;
 	else
