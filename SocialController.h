@@ -27,6 +27,7 @@
 @property (nonatomic, retain) UIBarButtonItem *barButtonItem;
 
 + (BOOL)canShare;
++ (void)followOnTwitter:(NSString *)handle;
 
 - (id)initWithMessage:(NSString *)aMessage;
 - (void)dealloc;

@@ -2,6 +2,7 @@
 //  SocialController.m
 //
 
+#import <Accounts/Accounts.h>
 #import <Twitter/Twitter.h>
 #import "SocialController.h"
 #ifndef NO_FACEBOOK
@@ -35,6 +36,54 @@
 		return YES;
 	return NO;
 }
+
+#ifdef __BLOCKS__
++ (void)followOnTwitter:(NSString *)handle
+{
+	ACAccountStore *accountStore;
+	ACAccountType *accountType;
+	
+	if(NSClassFromString(@"ACAccountStore") == nil)
+	{
+		UIAlertView *alert = [[[UIAlertView alloc] initWithTitle:nil message:@"This feature is only available in iOS 5.0+." delegate:nil cancelButtonTitle:nil otherButtonTitles:@"OK", nil] autorelease];
+		[alert show];
+	}
+	
+    accountStore = [[[ACAccountStore alloc] init] autorelease];
+	accountType = [accountStore accountTypeWithAccountTypeIdentifier:ACAccountTypeIdentifierTwitter];
+	[accountStore requestAccessToAccountsWithType:accountType withCompletionHandler:^(BOOL granted, NSError *error) {
+		if(granted)
+		{
+			NSArray *accounts = [accountStore accountsWithAccountType:accountType];
+			if([accounts count] > 0)
+			{
+				ACAccount *twitterAccount = [accounts objectAtIndex:0];				
+				TWRequest *twitterRequest = [[TWRequest alloc] initWithURL:[NSURL URLWithString:@"https://api.twitter.com/1/friendships/create.json"]
+															 parameters:[NSDictionary dictionaryWithObjectsAndKeys:handle, @"screen_name", @"true", @"follow", nil]
+														  requestMethod:TWRequestMethodPOST];
+				[twitterRequest setAccount:twitterAccount];
+				[twitterRequest performRequestWithHandler:^(NSData *responseData, NSHTTPURLResponse *urlResponse, NSError *error) {
+					if([urlResponse statusCode] >= 400)
+					{
+						UIAlertView *alert = [[[UIAlertView alloc] initWithTitle:@"Error" message:[error localizedDescription] delegate:nil cancelButtonTitle:nil otherButtonTitles:@"OK", nil] autorelease];
+						[alert show];
+					}
+					else
+					{
+						UIAlertView *alert = [[[UIAlertView alloc] initWithTitle:nil message:[NSString stringWithFormat:@"Thanks! You are now following %@.", handle] delegate:nil cancelButtonTitle:nil otherButtonTitles:@"OK", nil] autorelease];
+						[alert show];
+					}
+                }];
+            }
+        }
+    }];
+}
+#else
++ (void)followOnTwitter:(NSString *)handle
+{
+	NSLog(@"Could not follow %@, blocks not enabled.", handle);
+}
+#endif
 
 - (id)initWithMessage:(NSString *)aMessage
 {
