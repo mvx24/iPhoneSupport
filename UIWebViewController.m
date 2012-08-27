@@ -6,15 +6,18 @@
 
 #import "UIWebViewController.h"
 
-#define BACK	@"\u21E0"
-#define FORWARD	@"\u21E2"
-#define CLOSE	@"\u2715"
+#define BACK		@"\u25C4"
+#define FORWARD		@"\u25BA"
+#define CLOSE		@"\u2715"
+#define ABOUT_BLANK	@"about:blank"
 
 @interface UIWebViewController ()
 {
 @private
 	UIWebView *webView;
 	UIToolbar *toolbar;
+	UIBarButtonItem *backItem, *forwardItem;
+	UISegmentedControl *segmentedControl;
 	NSURL *url;
 	BOOL file;
 	BOOL scalesPage;
@@ -24,6 +27,8 @@
 - (void)back:(id)sender;
 - (void)forward:(id)sender;
 - (void)close:(id)sender;
+- (void)segmentedAction:(id)sender;
+- (void)enableControls;
 
 @end
 
@@ -31,20 +36,14 @@
 
 @synthesize extraLoadData;
 @synthesize showToolbar;
-
-- (id)init
-{
-	if(self = [super init])
-	{
-	}
-	return self;
-}
+@synthesize showNavigationBarControls;
 
 - (void)dealloc
 {
 	self.extraLoadData = nil;
 	[url release];
 	url = nil;
+	[webView setDelegate:nil];
 	self.view = nil;
 	[super dealloc];
 }
@@ -55,9 +54,7 @@
 {
 	[super viewDidDisappear:animated];
 	if(self.navigationController.tabBarController.tabBar.selectedItem == self.navigationController.tabBarItem)
-	{
-		[self.webView loadRequest:[NSURLRequest requestWithURL:[NSURL URLWithString:@"about:blank"]]];
-	}
+		[self.webView loadRequest:[NSURLRequest requestWithURL:[NSURL URLWithString:ABOUT_BLANK]]];
 }
 
 - (void)viewDidLoad
@@ -73,7 +70,7 @@
 
 - (void)loadView
 {
-	UIBarButtonItem *backItem, *forwardItem, *flexItem, *doneItem;
+	UIBarButtonItem *flexItem, *doneItem;
 
 	toolbar = [[[UIToolbar alloc] initWithFrame:CGRectMake(0.0f, 0.0f, 0.0f, 44.0f)] autorelease];
 	toolbar.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleTopMargin;
@@ -88,6 +85,7 @@
 	[self.view addSubview:webView];
 	[self.view addSubview:toolbar];
 	toolbar.hidden = !self.showToolbar;
+	[self enableControls];
 }
 
 - (BOOL)shouldAutorotateToInterfaceOrientation:(UIInterfaceOrientation)interfaceOrientation
@@ -99,12 +97,18 @@
 
 - (void)back:(id)sender
 {
-	[webView goBack];
+	if([webView isLoading])
+		[webView stopLoading];
+	else if([webView canGoBack])
+		[webView goBack];
 }
 
 - (void)forward:(id)sender
 {
-	[webView goForward];
+	if([webView isLoading])
+		[webView stopLoading];
+	else if([webView canGoForward])
+		[webView goForward];
 }
 
 - (void)close:(id)sender
@@ -128,13 +132,57 @@
 	}
 }
 
+- (void)segmentedAction:(id)sender
+{
+	if(segmentedControl.selectedSegmentIndex == 0)
+		[self back:self];
+	else
+		[self forward:self];
+}
+
+- (void)setShowNavigationBarControls:(BOOL)newShowNavigationBarControls
+{
+	if(showNavigationBarControls != newShowNavigationBarControls)
+	{
+		showNavigationBarControls = newShowNavigationBarControls;
+		if(showNavigationBarControls)
+		{
+			CGRect frame;
+			segmentedControl = [[[UISegmentedControl alloc] initWithItems:[NSArray arrayWithObjects:BACK, FORWARD, nil]] autorelease];
+			segmentedControl.momentary = YES;
+			segmentedControl.segmentedControlStyle = UISegmentedControlStyleBar;
+			[segmentedControl addTarget:self action:@selector(segmentedAction:) forControlEvents:UIControlEventValueChanged];
+			frame = segmentedControl.frame;
+			frame.size.width += 20;
+			segmentedControl.frame = frame;
+			self.navigationItem.rightBarButtonItem = [[[UIBarButtonItem alloc] initWithCustomView:segmentedControl] autorelease];
+		}
+		else
+		{
+			segmentedControl = nil;
+			self.navigationItem.leftBarButtonItem = nil;
+		}
+		[self enableControls];
+	}
+}
+
+- (void)enableControls
+{
+	if(segmentedControl)
+	{
+		[segmentedControl setEnabled:[webView canGoBack] forSegmentAtIndex:0];
+		[segmentedControl setEnabled:[webView canGoForward] forSegmentAtIndex:1];
+	}
+	[backItem setEnabled:[webView canGoBack]];
+	[forwardItem setEnabled:[webView canGoForward]];
+}
+
 #pragma mark - External methods
 
 - (UIWebView *)webView
 {
-	UIView *temp;
 	if(webView == nil)
-		temp = self.view;
+		[self view];
 	return webView;
 }
 
@@ -173,7 +221,7 @@
 		html = [NSString stringWithContentsOfFile:thePath encoding:NSUTF8StringEncoding error:NULL];
 		if(html == nil)
 		{
-			[self.webView loadRequest:[NSURLRequest requestWithURL:[NSURL URLWithString:@"about:blank"]]];
+			[self.webView loadRequest:[NSURLRequest requestWithURL:[NSURL URLWithString:ABOUT_BLANK]]];
 			return;
 		}
 		[webView loadHTMLString:html baseURL:[NSURL fileURLWithPath:[thePath stringByDeletingLastPathComponent]]];
@@ -235,6 +283,7 @@
 			[webView stringByEvaluatingJavaScriptFromString:[NSString stringWithFormat:@"window.webview_loaded(%@)", loadString]];
 		}
 	}
+	[self enableControls];
 }
 
 - (void)webView:(UIWebView *)theWebView didFailLoadWithError:(NSError *)error

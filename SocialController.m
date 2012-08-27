@@ -58,9 +58,9 @@
 			if([accounts count] > 0)
 			{
 				ACAccount *twitterAccount = [accounts objectAtIndex:0];				
-				TWRequest *twitterRequest = [[TWRequest alloc] initWithURL:[NSURL URLWithString:@"https://api.twitter.com/1/friendships/create.json"]
+				TWRequest *twitterRequest = [[[TWRequest alloc] initWithURL:[NSURL URLWithString:@"https://api.twitter.com/1/friendships/create.json"]
 															 parameters:[NSDictionary dictionaryWithObjectsAndKeys:handle, @"screen_name", @"true", @"follow", nil]
-														  requestMethod:TWRequestMethodPOST];
+														  requestMethod:TWRequestMethodPOST] autorelease];
 				[twitterRequest setAccount:twitterAccount];
 				[twitterRequest performRequestWithHandler:^(NSData *responseData, NSHTTPURLResponse *urlResponse, NSError *error) {
 					if([urlResponse statusCode] >= 400)
