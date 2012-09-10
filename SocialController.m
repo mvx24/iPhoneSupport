@@ -58,7 +58,7 @@
 			if([accounts count] > 0)
 			{
 				ACAccount *twitterAccount = [accounts objectAtIndex:0];				
-				TWRequest *twitterRequest = [[[TWRequest alloc] initWithURL:[NSURL URLWithString:@"https://api.twitter.com/1/friendships/create.json"]
+				TWRequest *twitterRequest = [[[TWRequest alloc] initWithURL:[NSURL URLWithString:@"https://api.twitter.com/1.1/friendships/create.json"]
 															 parameters:[NSDictionary dictionaryWithObjectsAndKeys:handle, @"screen_name", @"true", @"follow", nil]
 														  requestMethod:TWRequestMethodPOST] autorelease];
 				[twitterRequest setAccount:twitterAccount];
@@ -75,6 +75,11 @@
 					}
                 }];
             }
+			else
+			{
+				UIAlertView *alert = [[[UIAlertView alloc] initWithTitle:@"Error" message:@"No twitter account setup on this device." delegate:nil cancelButtonTitle:nil otherButtonTitles:@"OK", nil] autorelease];
+				[alert show];
+			}
         }
     }];
 }
