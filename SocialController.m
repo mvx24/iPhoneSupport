@@ -66,19 +66,19 @@
 					if([urlResponse statusCode] >= 400)
 					{
 						UIAlertView *alert = [[[UIAlertView alloc] initWithTitle:@"Error" message:[error localizedDescription] delegate:nil cancelButtonTitle:nil otherButtonTitles:@"OK", nil] autorelease];
-						[alert show];
+						[alert performSelectorOnMainThread:@selector(show) withObject:nil waitUntilDone:YES];
 					}
 					else
 					{
 						UIAlertView *alert = [[[UIAlertView alloc] initWithTitle:nil message:[NSString stringWithFormat:@"Thanks! You are now following %@.", handle] delegate:nil cancelButtonTitle:nil otherButtonTitles:@"OK", nil] autorelease];
-						[alert show];
+						[alert performSelectorOnMainThread:@selector(show) withObject:nil waitUntilDone:YES];
 					}
                 }];
             }
 			else
 			{
 				UIAlertView *alert = [[[UIAlertView alloc] initWithTitle:@"Error" message:@"No twitter account setup on this device." delegate:nil cancelButtonTitle:nil otherButtonTitles:@"OK", nil] autorelease];
-				[alert show];
+				[alert performSelectorOnMainThread:@selector(show) withObject:nil waitUntilDone:YES];
 			}
         }
     }];
