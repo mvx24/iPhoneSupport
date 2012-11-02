@@ -33,6 +33,7 @@
 - (void)dealloc;
 
 - (void)showActionSheetOverViewController:(UIViewController *)aViewController;
+- (void)showActionSheetOverViewController:(UIViewController *)aViewController inRect:(CGRect)frame;
 - (void)showActionSheetOverViewController:(UIViewController *)aViewController barButtonItem:(UIBarButtonItem *)aBarButtonItem;
 
 @end
