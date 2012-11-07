@@ -133,6 +133,21 @@
 	[actionSheet showInView:[self.viewController view]];
 }
 
+- (void)showActionSheetOverViewController:(UIViewController *)aViewController inRect:(CGRect)frame
+{
+	UIActionSheet *actionSheet;
+	
+	[self retain];
+	self.viewController = aViewController;
+#ifdef NO_FACEBOOK
+	actionSheet = [[[UIActionSheet alloc] initWithTitle:(self.title == nil)?@"Share":self.title delegate:self cancelButtonTitle:@"Cancel" destructiveButtonTitle:nil otherButtonTitles:@"Email", @"Twitter", nil] autorelease];
+#else
+	actionSheet = [[[UIActionSheet alloc] initWithTitle:(self.title == nil)?@"Share":self.title delegate:self cancelButtonTitle:@"Cancel" destructiveButtonTitle:nil otherButtonTitles:@"Email", @"Twitter", @"Facebook", nil] autorelease];
+#endif
+	actionSheet.actionSheetStyle = UIActionSheetStyleBlackTranslucent;
+	[actionSheet showFromRect:frame inView:aViewController.view animated:YES];
+}
+
 - (void)showActionSheetOverViewController:(UIViewController *)aViewController barButtonItem:(UIBarButtonItem *)aBarButtonItem
 {
 	UIActionSheet *actionSheet;
