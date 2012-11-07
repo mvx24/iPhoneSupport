@@ -37,6 +37,7 @@
 @synthesize extraLoadData;
 @synthesize showToolbar;
 @synthesize showNavigationBarControls;
+@synthesize dismissOnError;
 
 - (void)dealloc
 {
@@ -53,6 +54,7 @@
 - (void)viewDidDisappear:(BOOL)animated
 {
 	[super viewDidDisappear:animated];
+	[[UIApplication sharedApplication] setNetworkActivityIndicatorVisible:NO];
 	if(self.navigationController.tabBarController.tabBar.selectedItem == self.navigationController.tabBarItem)
 		[self.webView loadRequest:[NSURLRequest requestWithURL:[NSURL URLWithString:ABOUT_BLANK]]];
 }
@@ -295,6 +297,8 @@
 		UIAlertView *alert;
 		alert = [[[UIAlertView alloc] initWithTitle:@"Error" message:[error localizedDescription] delegate:nil cancelButtonTitle:@"OK" otherButtonTitles:nil] autorelease];
 		[alert show];
+		if(dismissOnError)
+			[self close:nil];
 	}
 }
 
