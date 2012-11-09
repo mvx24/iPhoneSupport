@@ -237,7 +237,8 @@
 
 - (BOOL)webView:(UIWebView *)theWebView shouldStartLoadWithRequest:(NSURLRequest *)request navigationType:(UIWebViewNavigationType)navigationType
 {
-	if([[[request URL] host] isEqualToString:@"symbioticbridge.com"])
+	NSString *host = [[request URL] host];
+	if([host isEqualToString:@"symbioticbridge.com"])
 	{
 		SEL command = NSSelectorFromString([NSString stringWithFormat:@"%@:", [[[request URL] relativePath] substringFromIndex:1]]);
 		if(command)
@@ -245,6 +246,11 @@
 			[self performSelector:command withObject:webView];
 			return NO;
 		}
+	}
+	else if([host isEqualToString:@"phobos.apple.com"] || [host isEqualToString:@"itunes.apple.com"] || [host isEqualToString:@"itunes.com"])
+	{
+		[[UIApplication sharedApplication] openURL:[request URL]];
+		return NO;
 	}
 	return YES;
 }
