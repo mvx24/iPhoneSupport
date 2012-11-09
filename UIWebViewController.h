@@ -8,7 +8,7 @@
 
 #import <UIKit/UIKit.h>
 
-@interface UIWebViewController : UIViewController <UIWebViewDelegate>
+@interface UIWebViewController : UIViewController <UIWebViewDelegate, UIAlertViewDelegate>
 
 @property (nonatomic, retain) NSDictionary *extraLoadData;
 @property (nonatomic, assign) BOOL showToolbar;

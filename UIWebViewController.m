@@ -300,12 +300,16 @@
 	
 	if(error.code != -999)
 	{
-		UIAlertView *alert;
-		alert = [[[UIAlertView alloc] initWithTitle:@"Error" message:[error localizedDescription] delegate:nil cancelButtonTitle:@"OK" otherButtonTitles:nil] autorelease];
-		[alert show];
-		if(dismissOnError)
-			[self close:nil];
+		[[[[UIAlertView alloc] initWithTitle:@"Error" message:[error localizedDescription] delegate:self cancelButtonTitle:@"OK" otherButtonTitles:nil] autorelease] show];
 	}
+}
+
+#pragma - UIAlertViewDelegate methods
+
+- (void)alertView:(UIAlertView *)alertView didDismissWithButtonIndex:(NSInteger)buttonIndex
+{
+	if(dismissOnError)
+		[self close:nil];
 }
 
 @end

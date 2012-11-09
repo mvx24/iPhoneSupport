@@ -15,11 +15,13 @@
 #define SOCIALCONTROLLER_FACEBOOK_URL	@"fb://post?message=%@"
 #define SOCIALCONTROLLER_TWITTER_URL	@"twitter://post?message=%@"
 
+#ifndef NO_FACEBOOK
 // App delegate methods expected
 @interface SocialController () <FBDialogDelegate>
 @property (nonatomic, retain) Facebook *facebook;
 - (BOOL)authorizeFacebook:(void (^)(BOOL authorized))completionHandler;
 @end
+#endif
 
 @implementation SocialController
 
@@ -32,7 +34,9 @@
 @synthesize viewController;
 @synthesize barButtonItem;
 
+#ifndef NO_FACEBOOK
 @synthesize facebook;
+#endif
 
 - (BOOL)authorizeFacebook:(void (^)(BOOL authorized))completionHandler { return NO; }
 
@@ -121,7 +125,9 @@
 	self.hashTagArray = nil;
 	self.viewController = nil;
 	self.barButtonItem = nil;
+#ifndef NO_FACEBOOK
 	self.facebook = nil;
+#endif
 	[super dealloc];
 }
 
@@ -309,6 +315,7 @@
 #endif
 }
 
+#ifndef NO_FACEBOOK
 - (void)dialogDidComplete:(FBDialog *)dialog
 {
 	[self autorelease];
@@ -335,5 +342,6 @@
 	[[[[UIAlertView alloc] initWithTitle:@"Error" message:errorMessage delegate:nil cancelButtonTitle:nil otherButtonTitles:@"OK", nil] autorelease] show];
 	[self autorelease];
 }
+#endif
 
 @end
