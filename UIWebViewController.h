@@ -13,6 +13,7 @@
 @property (nonatomic, retain) NSDictionary *extraLoadData;
 @property (nonatomic, assign) BOOL showToolbar;
 @property (nonatomic, assign) BOOL showNavigationBarControls;
+@property (nonatomic, assign) BOOL dismissOnError;
 
 - (UIWebView *)webView;
 - (void)loadURL:(NSURL *)theURL;

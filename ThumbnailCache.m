@@ -118,6 +118,11 @@ static id sharedInstance;
 	return cachedResponse;
 }
 
+- (NSURLRequest *)connection:(NSURLConnection *)connection willSendRequest:(NSURLRequest *)request redirectResponse:(NSURLResponse *)redirectResponse
+{
+	return request;
+}
+
 - (void)connection:(NSURLConnection *)theConnection didFailWithError:(NSError *)error
 {
 	// Cleanup

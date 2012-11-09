@@ -6,11 +6,20 @@
 #import <Twitter/Twitter.h>
 #import "SocialController.h"
 #ifndef NO_FACEBOOK
+#ifndef OLD_FACEBOOK
+#import <FacebookSDK/FacebookSDK.h>
+#endif
 #import "Facebook.h"
 #endif
 
 #define SOCIALCONTROLLER_FACEBOOK_URL	@"fb://post?message=%@"
 #define SOCIALCONTROLLER_TWITTER_URL	@"twitter://post?message=%@"
+
+// App delegate methods expected
+@interface SocialController () <FBDialogDelegate>
+@property (nonatomic, retain) Facebook *facebook;
+- (BOOL)authorizeFacebook:(void (^)(BOOL authorized))completionHandler;
+@end
 
 @implementation SocialController
 
@@ -22,6 +31,10 @@
 @synthesize hashTagArray;
 @synthesize viewController;
 @synthesize barButtonItem;
+
+@synthesize facebook;
+
+- (BOOL)authorizeFacebook:(void (^)(BOOL authorized))completionHandler { return NO; }
 
 + (BOOL)canShare
 {
@@ -108,6 +121,7 @@
 	self.hashTagArray = nil;
 	self.viewController = nil;
 	self.barButtonItem = nil;
+	self.facebook = nil;
 	[super dealloc];
 }
 
@@ -131,6 +145,21 @@
 #endif
 	actionSheet.actionSheetStyle = UIActionSheetStyleBlackTranslucent;
 	[actionSheet showInView:[self.viewController view]];
+}
+
+- (void)showActionSheetOverViewController:(UIViewController *)aViewController inRect:(CGRect)frame
+{
+	UIActionSheet *actionSheet;
+	
+	[self retain];
+	self.viewController = aViewController;
+#ifdef NO_FACEBOOK
+	actionSheet = [[[UIActionSheet alloc] initWithTitle:(self.title == nil)?@"Share":self.title delegate:self cancelButtonTitle:@"Cancel" destructiveButtonTitle:nil otherButtonTitles:@"Email", @"Twitter", nil] autorelease];
+#else
+	actionSheet = [[[UIActionSheet alloc] initWithTitle:(self.title == nil)?@"Share":self.title delegate:self cancelButtonTitle:@"Cancel" destructiveButtonTitle:nil otherButtonTitles:@"Email", @"Twitter", @"Facebook", nil] autorelease];
+#endif
+	actionSheet.actionSheetStyle = UIActionSheetStyleBlackTranslucent;
+	[actionSheet showFromRect:frame inView:aViewController.view animated:YES];
 }
 
 - (void)showActionSheetOverViewController:(UIViewController *)aViewController barButtonItem:(UIBarButtonItem *)aBarButtonItem
@@ -175,7 +204,7 @@
 			mailComposerViewController = [[[MFMailComposeViewController alloc] init] autorelease];
 			mailComposerViewController.mailComposeDelegate = self;
 			[mailComposerViewController setSubject:subject];
-			if(self.url)
+			if(url)
 				[mailComposerViewController setMessageBody:[NSString stringWithFormat:@"%@ %@", self.message, self.url] isHTML:NO];
 			else
 				[mailComposerViewController setMessageBody:message isHTML:NO];
@@ -191,21 +220,29 @@
 	}
 	else if([buttonTitle isEqualToString:@"Twitter"])
 	{
+		NSString *completeMessage;
+		
+		if([hashTagArray count])
+			completeMessage = [message stringByAppendingFormat:@" %@", [hashTagArray componentsJoinedByString:@" "]];
+		else
+			completeMessage = message;
+			
 		if(((NSClassFromString(@"TWTweetComposeViewController")) != nil) && [TWTweetComposeViewController canSendTweet])
 		{
 			TWTweetComposeViewController *tweetViewController;
 			tweetViewController = [[[TWTweetComposeViewController alloc] init] autorelease];
-			[tweetViewController setInitialText:message];
+			[tweetViewController setInitialText:completeMessage];
 			if(self.url)
 				[tweetViewController addURL:[NSURL URLWithString:self.url]];
 			[self.viewController presentModalViewController:tweetViewController animated:YES];
 		}
 		else
 		{
-			if(self.url)
-				str = [NSString stringWithFormat:SOCIALCONTROLLER_TWITTER_URL, [[NSString stringWithFormat:@"%@ %@", self.message, self.url] stringByAddingPercentEscapesUsingEncoding:NSUTF8StringEncoding]];
+			
+			if(url)
+				str = [NSString stringWithFormat:SOCIALCONTROLLER_TWITTER_URL, [[NSString stringWithFormat:@"%@ %@", completeMessage, url] stringByAddingPercentEscapesUsingEncoding:NSUTF8StringEncoding]];
 			else
-				str = [NSString stringWithFormat:SOCIALCONTROLLER_TWITTER_URL, [message stringByAddingPercentEscapesUsingEncoding:NSUTF8StringEncoding]];
+				str = [NSString stringWithFormat:SOCIALCONTROLLER_TWITTER_URL, [completeMessage stringByAddingPercentEscapesUsingEncoding:NSUTF8StringEncoding]];
 			if([[UIApplication sharedApplication] canOpenURL:[NSURL URLWithString:str]])
 			{
 				[[UIApplication sharedApplication] openURL:[NSURL URLWithString:str]];
@@ -219,13 +256,84 @@
 		}
 	}
 #ifndef NO_FACEBOOK
+#ifdef OLD_FACEBOOK
 	else if([buttonTitle isEqualToString:@"Facebook"])
 	{
 		id appDelegate = [[UIApplication sharedApplication] delegate];
-		if([appDelegate respondsToSelector:@selector(postToFacebook:)])
-		   [appDelegate performSelector:@selector(postToFacebook:) withObject:self];
+		if([appDelegate respondsToSelector:@selector(authorizeFacebook:)])
+		{
+			(void)[appDelegate authorizeFacebook:^(BOOL authorized){
+				if(authorized)
+				{
+					NSMutableDictionary* params = [NSMutableDictionary dictionaryWithObjectsAndKeys:message, @"description", facebookUrl, @"link", nil];
+					[[appDelegate facebook] dialog:@"feed" andParams:params andDelegate:nil];
+				}
+			}];
+		}
+	}
+#else
+	else if([buttonTitle isEqualToString:@"Facebook"])
+	{
+		id appDelegate = [[UIApplication sharedApplication] delegate];
+		if([appDelegate respondsToSelector:@selector(authorizeFacebook:)])
+		{
+			(void)[appDelegate authorizeFacebook:^(BOOL authorized){
+				if(authorized)
+				{
+					if([FBNativeDialogs canPresentShareDialogWithSession:FBSession.activeSession])
+					{
+						[FBNativeDialogs presentShareDialogModallyFrom:viewController initialText:message image:[UIImage imageNamed:@"Icon@2x.png"] url:[url length]?[NSURL URLWithString:url]:nil handler:^(FBNativeDialogResult result, NSError *error) {
+							if(result == FBNativeDialogResultError)
+							{
+								NSString *errorMessage = [NSString stringWithFormat:@"There was a problem connecting to Facebook: %@", [error localizedDescription]];
+								[[[[UIAlertView alloc] initWithTitle:@"Error" message:errorMessage delegate:nil cancelButtonTitle:nil otherButtonTitles:@"OK", nil] autorelease] show];
+							}
+						}];
+					}
+					else
+					{
+						NSMutableDictionary *params;
+						// Retain until delegate methods are called
+						[self retain];
+						self.facebook = [[[Facebook alloc] initWithAppId:FBSession.activeSession.appID andDelegate:nil] autorelease];
+						facebook.accessToken = FBSession.activeSession.accessToken;
+						facebook.expirationDate = FBSession.activeSession.expirationDate;
+						params = [NSMutableDictionary dictionaryWithObjectsAndKeys:message, @"description", facebookUrl, @"link", nil];
+						[facebook dialog:@"feed" andParams:params andDelegate:self];
+					}
+				}
+			}];
+		}
 	}
 #endif
+#endif
+}
+
+- (void)dialogDidComplete:(FBDialog *)dialog
+{
+	[self autorelease];
+}
+
+- (void)dialogCompleteWithUrl:(NSURL *)url
+{
+	[self autorelease];
+}
+
+- (void)dialogDidNotCompleteWithUrl:(NSURL *)url
+{
+	[self autorelease];
+}
+
+- (void)dialogDidNotComplete:(FBDialog *)dialog
+{
+	[self autorelease];
+}
+
+- (void)dialog:(FBDialog*)dialog didFailWithError:(NSError *)error
+{
+	NSString *errorMessage = [NSString stringWithFormat:@"There was a problem connecting to Facebook: %@", [error localizedDescription]];
+	[[[[UIAlertView alloc] initWithTitle:@"Error" message:errorMessage delegate:nil cancelButtonTitle:nil otherButtonTitles:@"OK", nil] autorelease] show];
+	[self autorelease];
 }
 
 @end
