@@ -64,6 +64,7 @@
 	{
 		UIAlertView *alert = [[[UIAlertView alloc] initWithTitle:nil message:@"This feature is only available in iOS 5.0+." delegate:nil cancelButtonTitle:nil otherButtonTitles:@"OK", nil] autorelease];
 		[alert show];
+		return;
 	}
 	
     accountStore = [[[ACAccountStore alloc] init] autorelease];
