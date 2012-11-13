@@ -6,9 +6,6 @@
 #import <Twitter/Twitter.h>
 #import "SocialController.h"
 #ifndef NO_FACEBOOK
-#ifndef OLD_FACEBOOK
-#import <FacebookSDK/FacebookSDK.h>
-#endif
 #import "Facebook.h"
 #endif
 
@@ -54,6 +51,20 @@
 	return NO;
 }
 
++ (void)openOnTwitter:(NSString *)handle
+{
+	NSURL *url = [NSURL URLWithString:[NSString stringWithFormat:@"twitter://user?screen_name=%@", handle]];
+	if([[UIApplication sharedApplication] canOpenURL:url])
+	{
+		[[UIApplication sharedApplication] openURL:url];
+	}
+	else
+	{
+		UIAlertView *alert = [[[UIAlertView alloc] initWithTitle:@"Error" message:@"Looks like you don't have Twitter installed." delegate:nil cancelButtonTitle:nil otherButtonTitles:@"OK", nil] autorelease];
+		[alert show];
+	}
+}
+
 #ifdef __BLOCKS__
 + (void)followOnTwitter:(NSString *)handle
 {
@@ -62,8 +73,8 @@
 	
 	if(NSClassFromString(@"ACAccountStore") == nil)
 	{
-		UIAlertView *alert = [[[UIAlertView alloc] initWithTitle:nil message:@"This feature is only available in iOS 5.0+." delegate:nil cancelButtonTitle:nil otherButtonTitles:@"OK", nil] autorelease];
-		[alert show];
+		[SocialController openOnTwitter:handle];
+		return;
 		return;
 	}
 	
@@ -104,7 +115,7 @@
 #else
 + (void)followOnTwitter:(NSString *)handle
 {
-	NSLog(@"Could not follow %@, blocks not enabled.", handle);
+	[SocialController openOnTwitter:handle];
 }
 #endif
 
@@ -272,6 +283,8 @@
 			(void)[appDelegate authorizeFacebook:^(BOOL authorized){
 				if(authorized)
 				{
+					// Retain until delegate methods are called
+					[self retain];
 					NSMutableDictionary* params = [NSMutableDictionary dictionaryWithObjectsAndKeys:message, @"description", facebookUrl, @"link", nil];
 					[[appDelegate facebook] dialog:@"feed" andParams:params andDelegate:nil];
 				}
@@ -318,16 +331,6 @@
 
 #ifndef NO_FACEBOOK
 - (void)dialogDidComplete:(FBDialog *)dialog
-{
-	[self autorelease];
-}
-
-- (void)dialogCompleteWithUrl:(NSURL *)url
-{
-	[self autorelease];
-}
-
-- (void)dialogDidNotCompleteWithUrl:(NSURL *)url
 {
 	[self autorelease];
 }
