@@ -17,6 +17,7 @@
 @interface SocialController () <FBDialogDelegate>
 @property (nonatomic, retain) Facebook *facebook;
 - (BOOL)authorizeFacebook:(void (^)(BOOL authorized))completionHandler;
+- (BOOL)authorizeFacebookPublishing:(void (^)(BOOL authorized))completionHandler;
 @end
 #endif
 
@@ -36,6 +37,7 @@
 #endif
 
 - (BOOL)authorizeFacebook:(void (^)(BOOL authorized))completionHandler { return NO; }
+- (BOOL)authorizeFacebookPublishing:(void (^)(BOOL authorized))completionHandler { return NO; }
 
 + (BOOL)canShare
 {
@@ -278,9 +280,9 @@
 	else if([buttonTitle isEqualToString:@"Facebook"])
 	{
 		id appDelegate = [[UIApplication sharedApplication] delegate];
-		if([appDelegate respondsToSelector:@selector(authorizeFacebook:)])
+		if([appDelegate respondsToSelector:@selector(authorizeFacebookPublishing:)])
 		{
-			(void)[appDelegate authorizeFacebook:^(BOOL authorized){
+			(void)[appDelegate authorizeFacebookPublishing:^(BOOL authorized){
 				if(authorized)
 				{
 					// Retain until delegate methods are called
@@ -295,9 +297,9 @@
 	else if([buttonTitle isEqualToString:@"Facebook"])
 	{
 		id appDelegate = [[UIApplication sharedApplication] delegate];
-		if([appDelegate respondsToSelector:@selector(authorizeFacebook:)])
+		if([appDelegate respondsToSelector:@selector(authorizeFacebookPublishing:)])
 		{
-			(void)[appDelegate authorizeFacebook:^(BOOL authorized){
+			(void)[appDelegate authorizeFacebookPublishing:^(BOOL authorized){
 				if(authorized)
 				{
 					if([FBNativeDialogs canPresentShareDialogWithSession:FBSession.activeSession])
