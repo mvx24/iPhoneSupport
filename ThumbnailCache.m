@@ -1,7 +1,6 @@
 //
 //  ThumbnailCache.m
 //
-//  Created by Marc Angelone on 5/1/12.
 //  Copyright (c) 2012 Symbiotic Software LLC. All rights reserved.
 //
 
@@ -15,11 +14,13 @@ static id sharedInstance;
 
 @interface ThumbnailCache ()
 
-@property (nonatomic, retain) NSMutableDictionary *cache;
+@property (atomic, retain) NSMutableDictionary *cache;
 @property (nonatomic, retain) NSMutableDictionary *connections;
 
-- (UIImage *)loadFromDisk:(id)key;
-- (void)saveToDisk:(UIImage *)image withKey:(id)key;
+- (UIImage *)loadFromDisk:(NSString *)key;
+- (void)saveToDisk:(UIImage *)image withKey:(NSString *)key;
+- (void)removeFromDisk:(NSString *)key;
+- (void)flushExpiredTask;
 
 @end
 
@@ -29,19 +30,19 @@ static id sharedInstance;
 	UIImageView *imageView;
 	UIButton *button;
 	ThumbnailCache *cache;
-	id key;
+	NSString * key;
 	NSMutableData *requestData;
 	NSURLConnection *requestConnection;
 }
 
-+ (ThumbnailRequest *)requestWithImageView:(UIImageView *)theImageView cache:(ThumbnailCache *)theCache url:(NSString *)theUrl key:(id)theKey;
-+ (ThumbnailRequest *)requestWithButton:(UIButton *)theButton cache:(ThumbnailCache *)theCache url:(NSString *)theUrl key:(id)theKey;
++ (ThumbnailRequest *)requestWithImageView:(UIImageView *)theImageView cache:(ThumbnailCache *)theCache url:(NSString *)theUrl key:(NSString *)theKey;
++ (ThumbnailRequest *)requestWithButton:(UIButton *)theButton cache:(ThumbnailCache *)theCache url:(NSString *)theUrl key:(NSString *)theKey;
 
 @end
 
 @implementation ThumbnailRequest
 
-+ (ThumbnailRequest *)requestWithImageView:(UIImageView *)theImageView cache:(ThumbnailCache *)theCache url:(NSString *)theUrl key:(id)theKey
++ (ThumbnailRequest *)requestWithImageView:(UIImageView *)theImageView cache:(ThumbnailCache *)theCache url:(NSString *)theUrl key:(NSString *)theKey
 {
 	NSURL *requestURL;
 	NSMutableURLRequest *requestWithURL;
@@ -66,7 +67,7 @@ static id sharedInstance;
 	return nil;
 }
 
-+ (ThumbnailRequest *)requestWithButton:(UIButton *)theButton cache:(ThumbnailCache *)theCache url:(NSString *)theUrl key:(id)theKey
++ (ThumbnailRequest *)requestWithButton:(UIButton *)theButton cache:(ThumbnailCache *)theCache url:(NSString *)theUrl key:(NSString *)theKey
 {
 	NSURL *requestURL;
 	NSMutableURLRequest *requestWithURL;
@@ -231,7 +232,8 @@ static id sharedInstance;
 	if(expirationInterval != newExpirationInterval)
 	{
 		expirationInterval = newExpirationInterval;
-		// TODO: Check all cached thumbnail timestamps
+		if(expirationInterval != 0.0)
+			[NSThread detachNewThreadSelector:@selector(flushExpiredTask) toTarget:self withObject:nil];
 	}
 }
 
@@ -240,7 +242,16 @@ static id sharedInstance;
 	NSArray *dirPaths;
 	NSString *path;
 	dirPaths = NSSearchPathForDirectoriesInDomains(NSCachesDirectory, NSUserDomainMask, YES);
-	path = [NSString stringWithFormat:@"%@/%@/%d.jpg", [dirPaths objectAtIndex:0], THUMBNAIL_DIRECTORY, [key hash]];
+	path = [NSString stringWithFormat:@"%@/%@/%@.jpg", [dirPaths objectAtIndex:0], THUMBNAIL_DIRECTORY, key];
+	if(expirationInterval != 0.0)
+	{
+		NSDictionary *attributes = [[NSFileManager defaultManager] attributesOfItemAtPath:path error:NULL];
+		if(-[[attributes fileCreationDate] timeIntervalSinceNow] > expirationInterval)
+		{
+			[[NSFileManager defaultManager] removeItemAtPath:path error:NULL];
+			return nil;
+		}
+	}
 	return [UIImage imageWithContentsOfFile:path];
 }
 
@@ -252,12 +263,39 @@ static id sharedInstance;
 	dirPaths = NSSearchPathForDirectoriesInDomains(NSCachesDirectory, NSUserDomainMask, YES);
 	cachePath = [NSString stringWithFormat:@"%@/%@", [dirPaths objectAtIndex:0], THUMBNAIL_DIRECTORY];
 	[[NSFileManager defaultManager] createDirectoryAtPath:cachePath withIntermediateDirectories:YES attributes:nil error:NULL];
-	path = [NSString stringWithFormat:@"%@/%d.jpg", cachePath, [key hash]];
+	path = [NSString stringWithFormat:@"%@/%@.jpg", cachePath, key];
 	jpegData = UIImageJPEGRepresentation(image, 0.5);
 	[jpegData writeToFile:path atomically:NO];
 }
 
-- (void)cacheThumbnailForImage:(UIImage *)image withKey:(id)key
+- (void)removeFromDisk:(id)key
+{
+	NSArray *dirPaths;
+	NSString *path;
+	dirPaths = NSSearchPathForDirectoriesInDomains(NSCachesDirectory, NSUserDomainMask, YES);
+	path = [NSString stringWithFormat:@"%@/%@/%@.jpg", [dirPaths objectAtIndex:0], THUMBNAIL_DIRECTORY, key];
+	[[NSFileManager defaultManager] removeItemAtPath:path error:NULL];
+}
+
+- (void)flushExpiredTask
+{
+	@autoreleasepool {
+		[self flushExpired];
+	}
+}
+
+- (void)cacheThumbnail:(UIImage *)thumbnail withKey:(NSString *)key
+{
+	if(thumbnail == nil)
+		return;
+	
+	if(self.cache == nil)
+		self.cache = [NSMutableDictionary dictionaryWithCapacity:32];
+	[self.cache setObject:thumbnail forKey:key];
+	[self saveToDisk:thumbnail withKey:key];
+}
+
+- (void)cacheThumbnailForImage:(UIImage *)image sized:(CGFloat)sized withKey:(NSString *)key
 {
 	UIImage *squaredImage, *thumbnail;
 	CGFloat size;
@@ -271,7 +309,7 @@ static id sharedInstance;
 	
 	// Convert the image to a thumbnail
 	squaredImage = [image squareImage];
-	size = SIZE_THUMBNAIL;
+	size = sized;
 	screen = [UIScreen mainScreen];
 	if([screen respondsToSelector:@selector(scale)])
 		size *= [screen scale];
@@ -280,7 +318,7 @@ static id sharedInstance;
 	[self saveToDisk:thumbnail withKey:key];
 }
 
-- (UIImage *)thumbnailForKey:(id)key
+- (UIImage *)thumbnailForKey:(NSString *)key
 {
 	UIImage *image = nil;
 	
@@ -293,7 +331,13 @@ static id sharedInstance;
 	return image;
 }
 
-- (void)loadImageView:(UIImageView *)imageView withUrl:(NSString *)url withKey:(id)key
+- (void)removeThumbnailForKey:(NSString *)key
+{
+	[self.cache removeObjectForKey:key];
+	[self removeFromDisk:key];
+}
+
+- (void)loadImageView:(UIImageView *)imageView withUrl:(NSString *)url withKey:(NSString *)key
 {
 	UIImage *image;
 	ThumbnailRequest *request;
@@ -321,7 +365,7 @@ static id sharedInstance;
 	}
 }
 
-- (void)loadButton:(UIButton *)button withUrl:(NSString *)url withKey:(id)key
+- (void)loadButton:(UIButton *)button withUrl:(NSString *)url withKey:(NSString *)key
 {
 	UIImage *image;
 	ThumbnailRequest *request;
@@ -368,6 +412,31 @@ static id sharedInstance;
 	enumerator = [fileManager enumeratorAtPath:path];
 	while(file = [enumerator nextObject])
 		[fileManager removeItemAtPath:[path stringByAppendingPathComponent:file] error:NULL];
+}
+
+- (void)flushExpired
+{
+	NSArray *dirPaths;
+	NSString *path;
+	NSFileManager *fileManager;
+	NSDirectoryEnumerator *enumerator;
+	NSString *file;
+	NSDictionary *attributes;
+	
+	if(expirationInterval == 0.0)
+		return;
+	
+	dirPaths = NSSearchPathForDirectoriesInDomains(NSCachesDirectory, NSUserDomainMask, YES);
+	path = [NSString stringWithFormat:@"%@/%@/", [dirPaths objectAtIndex:0], THUMBNAIL_DIRECTORY];
+	fileManager = [NSFileManager defaultManager];
+	enumerator = [fileManager enumeratorAtPath:path];
+	while(file = [enumerator nextObject])
+	{
+		attributes = [fileManager attributesOfItemAtPath:path error:NULL];
+		if(-[[attributes fileCreationDate] timeIntervalSinceNow] > expirationInterval)
+			[fileManager removeItemAtPath:[path stringByAppendingPathComponent:file] error:NULL];
+	}
+	self.cache = nil;
 }
 
 @end
