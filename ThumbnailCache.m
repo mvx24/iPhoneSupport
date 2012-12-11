@@ -160,7 +160,7 @@ static id sharedInstance;
 	
 	if(image)
 	{
-		[cache cacheThumbnailForImage:image withKey:key];
+		[cache cacheThumbnail:image withKey:key];
 		if(imageView)
 			imageView.image = [cache thumbnailForKey:key];
 		else if(button)
