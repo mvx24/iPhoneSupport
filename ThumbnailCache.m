@@ -356,6 +356,9 @@ static id sharedInstance;
 		// Check to make sure it's a new request or overriding an existing request
 		if(!request || ![request->key isEqual:key])
 		{
+			// Cancel the current request and overwrite it with a new one
+			if(request)
+				[request->requestConnection cancel];
 			request = [ThumbnailRequest requestWithImageView:imageView cache:self url:url key:key];
 			if(request)
 				[self.connections setObject:request forKey:imageViewKey];
@@ -384,6 +387,9 @@ static id sharedInstance;
 		// Check to make sure it's a new request or overriding an existing request
 		if(!request || ![request->key isEqual:key])
 		{
+			// Cancel the current request and overwrite it with a new one
+			if(request)
+				[request->requestConnection cancel];
 			request = [ThumbnailRequest requestWithButton:button cache:self url:url key:key];
 			if(request)
 				[self.connections setObject:request forKey:buttonKey];

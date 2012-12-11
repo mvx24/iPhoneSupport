@@ -275,6 +275,9 @@ static id sharedInstance;
 		// Check to make sure it's a new request or overriding an existing request
 		if(!request || ![request->key isEqualToString:key])
 		{
+			// Cancel the current request and overwrite it with a new one
+			if(request)
+				[request->requestConnection cancel];
 			request = [ImageRequest requestWithImageView:imageView cache:self url:url key:key completion:completion];
 			[self.connections setObject:request forKey:imageViewKey];
 		}
