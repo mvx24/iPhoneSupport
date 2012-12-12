@@ -277,9 +277,31 @@ static id sharedInstance;
 		{
 			// Cancel the current request and overwrite it with a new one
 			if(request)
+			{
 				[request->requestConnection cancel];
+				request->requestConnection = nil;
+			}
 			request = [ImageRequest requestWithImageView:imageView cache:self url:url key:key completion:completion];
 			[self.connections setObject:request forKey:imageViewKey];
+		}
+	}
+}
+
+- (void)cancelLoadForImageView:(UIImageView *)imageView
+{
+	ImageRequest *request;
+	NSValue *imageViewKey;
+	
+	if([self.connections count])
+	{
+		imageViewKey = [NSValue valueWithPointer:imageView];
+		request = [self.connections objectForKey:imageViewKey];
+		// Cancel the request and remove it
+		if(request)
+		{
+			[request->requestConnection cancel];
+			request->requestConnection = nil;
+			[self.connections removeObjectForKey:imageViewKey];
 		}
 	}
 }

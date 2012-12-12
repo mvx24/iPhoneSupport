@@ -16,6 +16,7 @@
 - (void)removeImageForKey:(NSString *)key;
 - (void)loadImageView:(UIImageView *)imageView withUrl:(NSString *)url withKey:(NSString *)key;
 - (void)loadImageView:(UIImageView *)imageView withUrl:(NSString *)url withKey:(NSString *)key completion:(void (^)(NSString *errorMessage))completion;
+- (void)cancelLoadForImageView:(UIImageView *)imageView;
 - (void)flushDisk;
 - (void)flushExpired;
 

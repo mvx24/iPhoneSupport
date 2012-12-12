@@ -33,6 +33,7 @@ static id sharedInstance;
 	NSString * key;
 	NSMutableData *requestData;
 	NSURLConnection *requestConnection;
+	BOOL canceled;
 }
 
 + (ThumbnailRequest *)requestWithImageView:(UIImageView *)theImageView cache:(ThumbnailCache *)theCache url:(NSString *)theUrl key:(NSString *)theKey;
@@ -131,20 +132,23 @@ static id sharedInstance;
 	requestData = nil;
 	requestConnection = nil;
 
-	// Load the failed image if provided
-	if(cache.failedImageName)
+	if(!canceled)
 	{
+		// Load the failed image if provided
+		if(cache.failedImageName)
+		{
+			if(imageView)
+				imageView.image = [UIImage imageNamed:cache.failedImageName];
+			else if(button)
+				[button setImage:[UIImage imageNamed:cache.failedImageName] forState:UIControlStateNormal];
+		}
+		
+		// Remove self from the connections
 		if(imageView)
-			imageView.image = [UIImage imageNamed:cache.failedImageName];
+			[cache.connections removeObjectForKey:[NSValue valueWithPointer:imageView]];
 		else if(button)
-			[button setImage:[UIImage imageNamed:cache.failedImageName] forState:UIControlStateNormal];
+			[cache.connections removeObjectForKey:[NSValue valueWithPointer:button]];
 	}
-	
-	// Remove self from the connections
-	if(imageView)
-		[cache.connections removeObjectForKey:[NSValue valueWithPointer:imageView]];
-	else if(button)
-		[cache.connections removeObjectForKey:[NSValue valueWithPointer:button]];
 }
 
 - (void)connectionDidFinishLoading:(NSURLConnection *)theConnection
@@ -158,31 +162,39 @@ static id sharedInstance;
 	requestData = nil;
 	requestConnection = nil;
 	
-	if(image)
+	if(canceled)
 	{
+		// Just finish caching if canceled
 		[cache cacheThumbnail:image withKey:key];
-		if(imageView)
-			imageView.image = [cache thumbnailForKey:key];
-		else if(button)
-			[button setImage:[cache thumbnailForKey:key] forState:UIControlStateNormal];
 	}
 	else
 	{
-		// Load the failed image if provided
-		if(cache.failedImageName)
+		if(image)
 		{
+			[cache cacheThumbnail:image withKey:key];
 			if(imageView)
-				imageView.image = [UIImage imageNamed:cache.failedImageName];
+				imageView.image = [cache thumbnailForKey:key];
 			else if(button)
-				[button setImage:[UIImage imageNamed:cache.failedImageName] forState:UIControlStateNormal];
+				[button setImage:[cache thumbnailForKey:key] forState:UIControlStateNormal];
 		}
+		else
+		{
+			// Load the failed image if provided
+			if(cache.failedImageName)
+			{
+				if(imageView)
+					imageView.image = [UIImage imageNamed:cache.failedImageName];
+				else if(button)
+					[button setImage:[UIImage imageNamed:cache.failedImageName] forState:UIControlStateNormal];
+			}
+		}
+		
+		// Remove self from the connections
+		if(imageView)
+			[cache.connections removeObjectForKey:[NSValue valueWithPointer:imageView]];
+		else if(button)
+			[cache.connections removeObjectForKey:[NSValue valueWithPointer:button]];
 	}
-	
-	// Remove self from the connections
-	if(imageView)
-		[cache.connections removeObjectForKey:[NSValue valueWithPointer:imageView]];
-	else if(button)
-		[cache.connections removeObjectForKey:[NSValue valueWithPointer:button]];
 }
 
 @end
@@ -190,6 +202,7 @@ static id sharedInstance;
 @implementation ThumbnailCache
 
 @synthesize expirationInterval;
+@synthesize alwaysFinishCaching;
 @synthesize failedImageName;
 @synthesize cache;
 @synthesize connections;
@@ -358,7 +371,12 @@ static id sharedInstance;
 		{
 			// Cancel the current request and overwrite it with a new one
 			if(request)
-				[request->requestConnection cancel];
+			{
+				if(alwaysFinishCaching)
+					request->canceled = YES;
+				else
+					[request->requestConnection cancel], request->requestConnection = nil;
+			}
 			request = [ThumbnailRequest requestWithImageView:imageView cache:self url:url key:key];
 			if(request)
 				[self.connections setObject:request forKey:imageViewKey];
@@ -389,12 +407,59 @@ static id sharedInstance;
 		{
 			// Cancel the current request and overwrite it with a new one
 			if(request)
-				[request->requestConnection cancel];
+			{
+				if(alwaysFinishCaching)
+					request->canceled = YES;
+				else
+					[request->requestConnection cancel], request->requestConnection = nil;
+			}
 			request = [ThumbnailRequest requestWithButton:button cache:self url:url key:key];
 			if(request)
 				[self.connections setObject:request forKey:buttonKey];
 			else if((image = [UIImage imageNamed:self.failedImageName]))
 				[button setImage:image forState:UIControlStateNormal];
+		}
+	}
+}
+
+- (void)cancelLoadForImageView:(UIImageView *)imageView
+{
+	ThumbnailRequest *request;
+	NSValue *imageViewKey;
+	
+	if([self.connections count])
+	{
+		imageViewKey = [NSValue valueWithPointer:imageView];
+		request = [self.connections objectForKey:imageViewKey];
+		// Cancel the request and remove it
+		if(request)
+		{
+			if(alwaysFinishCaching)
+				request->canceled = YES;
+			else
+				[request->requestConnection cancel], request->requestConnection = nil;
+			[self.connections removeObjectForKey:imageViewKey];
+		}
+	}
+}
+
+- (void)cancelLoadForButton:(UIButton *)button
+{
+	ThumbnailRequest *request;
+	NSValue *buttonKey;
+	
+	if([self.connections count])
+	{
+		buttonKey = [NSValue valueWithPointer:button];
+		request = [self.connections objectForKey:buttonKey];
+		// Cancel the request and remove it
+		if(request)
+		{
+			if(alwaysFinishCaching)
+				request->canceled = YES;
+			else
+				[request->requestConnection cancel], request->requestConnection = nil;
+			[self.connections removeObjectForKey:buttonKey];
 		}
 	}
 }
