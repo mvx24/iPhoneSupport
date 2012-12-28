@@ -46,16 +46,65 @@
 	self.contentOffset = CGPointMake(0.0f, 0.0f);
 	prevLoaded = currentLoaded = nextLoaded = NO;
 	currentPage = 0;
-	totalPages = [self.pageDelegate numberOfPagesInPagedScrollView:self];
+	totalPages = [pageDelegate numberOfPagesInPagedScrollView:self];
 	if(totalPages)
 	{
-		[self.pageDelegate loadView:prevPageView forPage:0];
+		[pageDelegate loadView:prevPageView forPage:0];
+		if([pageDelegate respondsToSelector:@selector(pagedScrollView:enteredPage:)])
+			[pageDelegate pagedScrollView:self enteredPage:0];
 		prevLoaded = YES;
 	}
 	if(scrollVertical)
 		self.contentSize = CGSizeMake(self.frame.size.width, self.frame.size.height * ((totalPages > 3)?3.0f:(CGFloat)totalPages));
 	else
 		self.contentSize = CGSizeMake(self.frame.size.width * ((totalPages > 3)?3.0f:(CGFloat)totalPages), self.frame.size.height);
+}
+
+- (void)back
+{
+	if(currentPage > 0)
+	{
+		CGPoint offset;
+		if(!scrollVertical)
+		{
+			offset = self.contentOffset;
+			offset.x -= self.frame.size.width;
+			self.contentOffset = offset;
+		}
+		else
+		{
+			offset = self.contentOffset;
+			offset.y -= self.frame.size.height;
+			self.contentOffset = offset;
+		}
+		[self scrollViewDidScroll:self];
+	}
+}
+
+- (void)forward
+{
+	if(currentPage < (totalPages - 1))
+	{
+		CGPoint offset;
+		if(!scrollVertical)
+		{
+			offset = self.contentOffset;
+			offset.x += self.frame.size.width;
+			self.contentOffset = offset;
+		}
+		else
+		{
+			offset = self.contentOffset;
+			offset.y += self.frame.size.height;
+			self.contentOffset = offset;
+		}
+		[self scrollViewDidScroll:self];
+	}
+}
+
+- (NSUInteger)currentPage
+{
+	return currentPage;
 }
 
 - (void)setup

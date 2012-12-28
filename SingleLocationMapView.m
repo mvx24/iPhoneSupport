@@ -6,7 +6,7 @@
 
 #import "SingleLocationMapView.h"
 
-#define SINGLELOCATIONMAP_SPAN 0.01f
+#define SINGLELOCATIONMAP_SPAN 0.005f
 
 // Another annotation class to not cause a circular retain
 @interface SingleLocationMapViewAnnotation : NSObject <MKAnnotation>
@@ -97,6 +97,12 @@
 		[self removeAnnotation:annotation];
 		[self addAnnotation:annotation];
 	}
+}
+
+- (void)reset
+{
+	if(annotation)
+		self.region = MKCoordinateRegionMake(annotation.coordinate, MKCoordinateSpanMake(SINGLELOCATIONMAP_SPAN, SINGLELOCATIONMAP_SPAN));
 }
 
 #pragma mark - MKMapViewDelegate methods

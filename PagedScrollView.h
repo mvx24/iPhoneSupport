@@ -20,8 +20,11 @@
 
 @property (nonatomic, assign) BOOL scrollVertical;
 @property (nonatomic, assign) IBOutlet id<PagedScrollViewDelegate> pageDelegate;
+@property (nonatomic, readonly) NSUInteger currentPage;
 
 + (PagedScrollView *)pagedScrollViewWithDelegate:(id<PagedScrollViewDelegate>)pageDelegate;
 - (void)reloadPages;
+- (void)back;
+- (void)forward;
 
 @end

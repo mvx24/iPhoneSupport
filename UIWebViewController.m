@@ -72,15 +72,31 @@
 
 - (void)loadView
 {
-	UIBarButtonItem *flexItem, *doneItem;
+	UIImage *backImage, *forwardImage, *closeImage;
+	UIBarButtonItem *fixedItem, *flexItem, *doneItem;
 
 	toolbar = [[[UIToolbar alloc] initWithFrame:CGRectMake(0.0f, 0.0f, 0.0f, 44.0f)] autorelease];
 	toolbar.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleTopMargin;
-	backItem = [[[UIBarButtonItem alloc] initWithTitle:BACK style:UIBarButtonItemStylePlain target:self action:@selector(back:)] autorelease];
-	forwardItem = [[[UIBarButtonItem alloc] initWithTitle:FORWARD style:UIBarButtonItemStylePlain target:self action:@selector(forward:)] autorelease];
+	
+	backImage = [UIImage imageNamed:@"icon_triangle_left.png"];
+	forwardImage = [UIImage imageNamed:@"icon_triangle_right.png"];
+	closeImage = [UIImage imageNamed:@"icon_close.png"];
+	if(backImage && forwardImage && closeImage)
+	{
+		backItem = [[[UIBarButtonItem alloc] initWithImage:backImage style:UIBarButtonItemStylePlain target:self action:@selector(back:)] autorelease];
+		forwardItem = [[[UIBarButtonItem alloc] initWithImage:forwardImage style:UIBarButtonItemStylePlain target:self action:@selector(forward:)] autorelease];
+		doneItem = [[[UIBarButtonItem alloc] initWithImage:closeImage style:UIBarButtonItemStylePlain target:self action:@selector(close:)] autorelease];
+	}
+	else
+	{
+		backItem = [[[UIBarButtonItem alloc] initWithTitle:BACK style:UIBarButtonItemStylePlain target:self action:@selector(back:)] autorelease];
+		forwardItem = [[[UIBarButtonItem alloc] initWithTitle:FORWARD style:UIBarButtonItemStylePlain target:self action:@selector(forward:)] autorelease];
+		doneItem = [[[UIBarButtonItem alloc] initWithTitle:CLOSE style:UIBarButtonItemStylePlain target:self action:@selector(close:)] autorelease];
+	}
+	fixedItem = [[[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemFixedSpace target:nil action:nil] autorelease];
+	fixedItem.width = 10.0f;
 	flexItem = [[[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemFlexibleSpace target:nil action:nil] autorelease];
-	doneItem = [[[UIBarButtonItem alloc] initWithTitle:CLOSE style:UIBarButtonItemStylePlain target:self action:@selector(close:)] autorelease];
-	toolbar.items = [NSArray arrayWithObjects:backItem, forwardItem, flexItem, doneItem, nil];
+	toolbar.items = [NSArray arrayWithObjects:backItem, fixedItem, forwardItem, flexItem, doneItem, nil];
 	webView = [[[UIWebView alloc] initWithFrame:self.showToolbar?CGRectZero:toolbar.frame] autorelease];
 	webView.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
 	self.view = [[[UIView alloc] initWithFrame:toolbar.frame] autorelease];

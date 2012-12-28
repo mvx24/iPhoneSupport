@@ -13,4 +13,6 @@
 @property (nonatomic, retain) NSString *title;
 @property (nonatomic, retain) MKAnnotationView *annotationView;
 
+- (void)reset;
+
 @end
