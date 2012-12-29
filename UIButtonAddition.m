@@ -13,10 +13,8 @@
 	UIButton *button = [[[UIButton alloc] initWithFrame:CGRectMake(0.0f, 0.0f, image.size.width + (theLeftCap * 2.0f), image.size.height + (theTopCap * 2.0f))] autorelease];
 	[button setImage:image forState:UIControlStateNormal];
 	[button setBackgroundImage:[backgroundImage stretchableImageWithLeftCapWidth:theLeftCap topCapHeight:theTopCap] forState:UIControlStateNormal];
-	
+
 	button.imageView.contentMode = UIViewContentModeCenter;
-	button.contentVerticalAlignment = UIControlContentVerticalAlignmentFill;
-	button.contentHorizontalAlignment = UIControlContentHorizontalAlignmentFill;
 	button.clipsToBounds = NO;
 	button.opaque = NO;
 
@@ -30,9 +28,8 @@
 	UIButton *button = [[[UIButton alloc] initWithFrame:frame] autorelease];
 	[button setBackgroundImage:[backgroundImage stretchableImageWithLeftCapWidth:theLeftCap topCapHeight:theTopCap] forState:UIControlStateNormal];
 	[button setTitle:title forState:UIControlStateNormal];
+	button.titleLabel.font = font;
 	
-	button.contentVerticalAlignment = UIControlContentVerticalAlignmentFill;
-	button.contentHorizontalAlignment = UIControlContentHorizontalAlignmentFill;
 	button.clipsToBounds = NO;
 	button.opaque = NO;
 	
