@@ -166,7 +166,12 @@
 		if(showNavigationBarControls)
 		{
 			CGRect frame;
-			segmentedControl = [[[UISegmentedControl alloc] initWithItems:[NSArray arrayWithObjects:BACK, FORWARD, nil]] autorelease];
+			UIImage *backImage = [UIImage imageNamed:@"icon_triangle_left.png"];
+			UIImage *forwardImage = [UIImage imageNamed:@"icon_triangle_right.png"];
+			if(backImage && forwardImage)
+				segmentedControl = [[[UISegmentedControl alloc] initWithItems:[NSArray arrayWithObjects:backImage, forwardImage, nil]] autorelease];
+			else
+				segmentedControl = [[[UISegmentedControl alloc] initWithItems:[NSArray arrayWithObjects:BACK, FORWARD, nil]] autorelease];
 			segmentedControl.momentary = YES;
 			segmentedControl.segmentedControlStyle = UISegmentedControlStyleBar;
 			[segmentedControl addTarget:self action:@selector(segmentedAction:) forControlEvents:UIControlEventValueChanged];
