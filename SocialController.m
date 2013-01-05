@@ -280,9 +280,9 @@
 	else if([buttonTitle isEqualToString:@"Facebook"])
 	{
 		id appDelegate = [[UIApplication sharedApplication] delegate];
-		if([appDelegate respondsToSelector:@selector(authorizeFacebookPublishing:)])
+		if([appDelegate respondsToSelector:@selector(authorizeFacebook:)])
 		{
-			(void)[appDelegate authorizeFacebookPublishing:^(BOOL authorized){
+			(void)[appDelegate authorizeFacebook:^(BOOL authorized){
 				if(authorized)
 				{
 					// Retain until delegate methods are called
@@ -296,10 +296,11 @@
 #else
 	else if([buttonTitle isEqualToString:@"Facebook"])
 	{
+		// Note: Facebook publishing permissions are not required to show the share dialog
 		id appDelegate = [[UIApplication sharedApplication] delegate];
-		if([appDelegate respondsToSelector:@selector(authorizeFacebookPublishing:)])
+		if([appDelegate respondsToSelector:@selector(authorizeFacebook:)])
 		{
-			(void)[appDelegate authorizeFacebookPublishing:^(BOOL authorized){
+			(void)[appDelegate authorizeFacebook:^(BOOL authorized){
 				if(authorized)
 				{
 					if([FBNativeDialogs canPresentShareDialogWithSession:FBSession.activeSession])
