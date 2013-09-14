@@ -115,6 +115,22 @@
 
 @implementation DrawerWindow
 
+- (void)setRootViewController:(UIViewController *)rootViewController
+{
+	if(self.rootViewController && [self isOpen])
+	{
+		rootViewController.view.frame = self.rootViewController.view.frame;
+		[self insertSubview:rootViewController.view aboveSubview:self.rootViewController.view];
+		[self.rootViewController.view removeFromSuperview];
+		[super setRootViewController:rootViewController];
+		[self closeDrawer:YES];
+	}
+	else
+	{
+		[super setRootViewController:rootViewController];
+	}
+}
+
 #pragma mark - Internal methods
 
 - (void)memoryWarning:(NSNotification *)notification
