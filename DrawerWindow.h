@@ -7,7 +7,7 @@
 #import <UIKit/UIKit.h>
 
 #define DRAWER_DEFAULT_DEPTH 220.0f
-#define DRAWER_DEFAULT_ANIMATION_DURATION 0.5
+#define DRAWER_DEFAULT_ANIMATION_DURATION 0.25
 #define DRAWER_DEFAULT_ANIMATION_OPTIONS UIViewAnimationOptionCurveEaseOut
 
 @protocol DrawerDelegate <NSObject>
