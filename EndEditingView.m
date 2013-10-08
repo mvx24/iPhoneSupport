@@ -8,9 +8,14 @@
 
 @implementation EndEditingView
 
+@synthesize endingSuperView;
+
 - (void)touchesBegan:(NSSet *)touches withEvent:(UIEvent *)event
 {
-	[self endEditing:YES];
+	if(endingSuperView)
+		[[self superview] endEditing:YES];
+	else
+		[self endEditing:YES];
 }
 
 @end

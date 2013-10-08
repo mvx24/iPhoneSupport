@@ -49,10 +49,15 @@
 	totalPages = [pageDelegate numberOfPagesInPagedScrollView:self];
 	if(totalPages)
 	{
+		prevPageView.hidden = NO;
 		[pageDelegate loadView:prevPageView forPage:0];
 		if([pageDelegate respondsToSelector:@selector(pagedScrollView:enteredPage:)])
 			[pageDelegate pagedScrollView:self enteredPage:0];
 		prevLoaded = YES;
+	}
+	else
+	{
+		prevPageView.hidden = YES;
 	}
 	if(scrollVertical)
 		self.contentSize = CGSizeMake(self.frame.size.width, self.frame.size.height * ((totalPages > 3)?3.0f:(CGFloat)totalPages));

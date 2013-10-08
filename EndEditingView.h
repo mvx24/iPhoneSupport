@@ -8,4 +8,6 @@
 
 @interface EndEditingView : UIView
 
+@property (nonatomic, assign) BOOL endingSuperView;
+
 @end
