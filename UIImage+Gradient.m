@@ -74,7 +74,7 @@ static CGContextRef _CreateBitmapContext(int pixelsWide, int pixelsHigh)
 	// Cleanup
 	bitmapImageRef = CGBitmapContextCreateImage(bitmapContext);
 	CGContextRelease(bitmapContext);
-	newImage = [UIImage imageWithCGImage:bitmapImageRef];
+	newImage = [UIImage imageWithCGImage:bitmapImageRef scale:[[UIScreen mainScreen] scale] orientation:UIImageOrientationUp];
 	CGImageRelease(bitmapImageRef);
 	return newImage;
 }
