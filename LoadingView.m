@@ -7,7 +7,7 @@
 #import "LoadingView.h"
 
 #define SIZE_LOADING_IMAGE		CGSizeMake(75.0f, 75.0f)
-#define STRING_LOADING @"		Loading ..."
+#define STRING_LOADING @"    Loading ..."
 
 @interface LoadingView ()
 
