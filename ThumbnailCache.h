@@ -12,7 +12,7 @@
 @property (nonatomic, assign) BOOL alwaysFinishCaching;		// When a load is canceled, it only cancels loading into the control but the download should finish
 @property (nonatomic, retain) NSString *failedImageName;	// The image to load into UIImageViews only when the image cannot be retreived from a given url
 
-+ (id)sharedCache;
++ (instancetype)sharedCache;
 - (void)cacheThumbnail:(UIImage *)thumbnail withKey:(NSString *)key;
 - (void)cacheThumbnailForImage:(UIImage *)image sized:(CGFloat)sized withKey:(NSString *)key;
 - (UIImage *)thumbnailForKey:(NSString *)key;

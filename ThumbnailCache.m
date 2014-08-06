@@ -207,16 +207,6 @@ static id sharedInstance;
 @synthesize cache;
 @synthesize connections;
 
-+ (void)initialize
-{
-	if(sharedInstance == nil)
-	{
-		sharedInstance = [[ThumbnailCache alloc] init];
-		[[NSNotificationCenter defaultCenter] addObserver:sharedInstance selector:@selector(applicationWillTerminate:) name:UIApplicationWillTerminateNotification object:nil];
-		[[NSNotificationCenter defaultCenter] addObserver:sharedInstance selector:@selector(memoryWarning:) name:UIApplicationDidReceiveMemoryWarningNotification object:nil];
-	}
-}
-
 - (void)memoryWarning:(NSNotification *)notification
 {
 	[self flushMemory];
@@ -235,9 +225,15 @@ static id sharedInstance;
 	[super dealloc];
 }
 
-+ (id)sharedCache
++ (instancetype)sharedCache
 {
-	return (ThumbnailCache *)sharedInstance;
+	if(sharedInstance == nil)
+	{
+		sharedInstance = [[ThumbnailCache alloc] init];
+		[[NSNotificationCenter defaultCenter] addObserver:sharedInstance selector:@selector(applicationWillTerminate:) name:UIApplicationWillTerminateNotification object:nil];
+		[[NSNotificationCenter defaultCenter] addObserver:sharedInstance selector:@selector(memoryWarning:) name:UIApplicationDidReceiveMemoryWarningNotification object:nil];
+	}
+	return sharedInstance;
 }
 
 - (void)setExpirationInterval:(NSTimeInterval)newExpirationInterval
