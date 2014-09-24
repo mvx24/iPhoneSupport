@@ -127,7 +127,7 @@ struct hsv_color
 
 - (NSString *)hexStringFromColor
 {
-	return [NSString stringWithFormat:@"%0.6lX", self.rgbHex];
+	return [NSString stringWithFormat:@"%0.6X", (unsigned int)self.rgbHex];
 }
 
 + (UIColor *)colorWithRGBHex:(UInt32)hex
