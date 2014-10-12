@@ -14,7 +14,7 @@
 
 #ifndef NO_FACEBOOK
 // App delegate methods expected
-@interface SocialController () <FBDialogDelegate>
+@interface SocialController () <UIActionSheetDelegate, MFMailComposeViewControllerDelegate, FBDialogDelegate>
 @property (nonatomic, retain) Facebook *facebook;
 - (BOOL)authorizeFacebook:(void (^)(BOOL authorized))completionHandler;
 - (BOOL)authorizeFacebookPublishing:(void (^)(BOOL authorized))completionHandler;
@@ -22,19 +22,6 @@
 #endif
 
 @implementation SocialController
-
-@synthesize title;
-@synthesize subject;
-@synthesize message;
-@synthesize url;
-@synthesize facebookUrl;
-@synthesize hashTagArray;
-@synthesize viewController;
-@synthesize barButtonItem;
-
-#ifndef NO_FACEBOOK
-@synthesize facebook;
-#endif
 
 - (BOOL)authorizeFacebook:(void (^)(BOOL authorized))completionHandler { return NO; }
 - (BOOL)authorizeFacebookPublishing:(void (^)(BOOL authorized))completionHandler { return NO; }
@@ -121,11 +108,11 @@
 }
 #endif
 
-- (id)initWithMessage:(NSString *)aMessage
+- (id)initWithMessage:(NSString *)message
 {
 	if(self = [super init])
 	{
-		self.message = aMessage;
+		self.message = message;
 	}
 	return self;
 }
@@ -147,61 +134,61 @@
 
 - (NSString *)facebookUrl
 {
-	if(facebookUrl == nil)
-		return message;
-	return facebookUrl;
+	if(_facebookUrl == nil)
+		return _message;
+	return _facebookUrl;
 }
 
-- (void)showActionSheetOverViewController:(UIViewController *)aViewController
+- (void)showActionSheetOverViewController:(UIViewController *)viewController
 {
 	UIActionSheet *actionSheet;
 	
 	[self retain];
-	self.viewController = aViewController;
+	self.viewController = viewController;
 #ifdef NO_FACEBOOK
-	actionSheet = [[[UIActionSheet alloc] initWithTitle:(self.title == nil)?@"Share":self.title delegate:self cancelButtonTitle:@"Cancel" destructiveButtonTitle:nil otherButtonTitles:@"Email", @"Twitter", nil] autorelease];
+	actionSheet = [[[UIActionSheet alloc] initWithTitle:(_title == nil)?@"Share":_title delegate:self cancelButtonTitle:@"Cancel" destructiveButtonTitle:nil otherButtonTitles:@"Email", @"Twitter", nil] autorelease];
 #else
-	actionSheet = [[[UIActionSheet alloc] initWithTitle:(self.title == nil)?@"Share":self.title delegate:self cancelButtonTitle:@"Cancel" destructiveButtonTitle:nil otherButtonTitles:@"Email", @"Twitter", @"Facebook", nil] autorelease];
+	actionSheet = [[[UIActionSheet alloc] initWithTitle:(_title == nil)?@"Share":_title delegate:self cancelButtonTitle:@"Cancel" destructiveButtonTitle:nil otherButtonTitles:@"Email", @"Twitter", @"Facebook", nil] autorelease];
 #endif
 	actionSheet.actionSheetStyle = UIActionSheetStyleBlackTranslucent;
-	[actionSheet showInView:[self.viewController view]];
+	[actionSheet showInView:[_viewController view]];
 }
 
-- (void)showActionSheetOverViewController:(UIViewController *)aViewController inRect:(CGRect)frame
+- (void)showActionSheetOverViewController:(UIViewController *)viewController inRect:(CGRect)frame
 {
 	UIActionSheet *actionSheet;
 	
 	[self retain];
-	self.viewController = aViewController;
+	self.viewController = viewController;
 #ifdef NO_FACEBOOK
-	actionSheet = [[[UIActionSheet alloc] initWithTitle:(self.title == nil)?@"Share":self.title delegate:self cancelButtonTitle:@"Cancel" destructiveButtonTitle:nil otherButtonTitles:@"Email", @"Twitter", nil] autorelease];
+	actionSheet = [[[UIActionSheet alloc] initWithTitle:(_title == nil)?@"Share":_title delegate:self cancelButtonTitle:@"Cancel" destructiveButtonTitle:nil otherButtonTitles:@"Email", @"Twitter", nil] autorelease];
 #else
-	actionSheet = [[[UIActionSheet alloc] initWithTitle:(self.title == nil)?@"Share":self.title delegate:self cancelButtonTitle:@"Cancel" destructiveButtonTitle:nil otherButtonTitles:@"Email", @"Twitter", @"Facebook", nil] autorelease];
+	actionSheet = [[[UIActionSheet alloc] initWithTitle:(_title == nil)?@"Share":_title delegate:self cancelButtonTitle:@"Cancel" destructiveButtonTitle:nil otherButtonTitles:@"Email", @"Twitter", @"Facebook", nil] autorelease];
 #endif
 	actionSheet.actionSheetStyle = UIActionSheetStyleBlackTranslucent;
-	[actionSheet showFromRect:frame inView:aViewController.view animated:YES];
+	[actionSheet showFromRect:frame inView:viewController.view animated:YES];
 }
 
-- (void)showActionSheetOverViewController:(UIViewController *)aViewController barButtonItem:(UIBarButtonItem *)aBarButtonItem
+- (void)showActionSheetOverViewController:(UIViewController *)viewController barButtonItem:(UIBarButtonItem *)barButtonItem
 {
 	UIActionSheet *actionSheet;
 	
 	[self retain];
-	self.viewController = aViewController;
-	self.barButtonItem = aBarButtonItem;
+	self.viewController = viewController;
+	self.barButtonItem = barButtonItem;
 #ifdef NO_FACEBOOK
-	actionSheet = [[[UIActionSheet alloc] initWithTitle:(self.title == nil)?@"Share":self.title delegate:self cancelButtonTitle:@"Cancel" destructiveButtonTitle:nil otherButtonTitles:@"Email", @"Twitter", nil] autorelease];
+	actionSheet = [[[UIActionSheet alloc] initWithTitle:(_title == nil)?@"Share":_title delegate:self cancelButtonTitle:@"Cancel" destructiveButtonTitle:nil otherButtonTitles:@"Email", @"Twitter", nil] autorelease];
 #else
-	actionSheet = [[[UIActionSheet alloc] initWithTitle:(self.title == nil)?@"Share":self.title delegate:self cancelButtonTitle:@"Cancel" destructiveButtonTitle:nil otherButtonTitles:@"Email", @"Twitter", @"Facebook", nil] autorelease];
+	actionSheet = [[[UIActionSheet alloc] initWithTitle:(_title == nil)?@"Share":_title delegate:self cancelButtonTitle:@"Cancel" destructiveButtonTitle:nil otherButtonTitles:@"Email", @"Twitter", @"Facebook", nil] autorelease];
 #endif
 	actionSheet.actionSheetStyle = UIActionSheetStyleBlackTranslucent;
-	[actionSheet showFromBarButtonItem:self.barButtonItem animated:YES];
+	[actionSheet showFromBarButtonItem:_barButtonItem animated:YES];
 }
 
 - (void)mailComposeController:(MFMailComposeViewController*)controller didFinishWithResult:(MFMailComposeResult)result error:(NSError*)error
 {
 	[self autorelease];
-	[self.viewController dismissModalViewControllerAnimated:YES];
+	[_viewController dismissModalViewControllerAnimated:YES];
 }
 
 - (void)actionSheet:(UIActionSheet *)actionSheet clickedButtonAtIndex:(NSInteger)buttonIndex
@@ -223,13 +210,13 @@
 		{
 			mailComposerViewController = [[[MFMailComposeViewController alloc] init] autorelease];
 			mailComposerViewController.mailComposeDelegate = self;
-			[mailComposerViewController setSubject:subject];
-			if(url)
-				[mailComposerViewController setMessageBody:[NSString stringWithFormat:@"%@ %@", self.message, self.url] isHTML:NO];
+			[mailComposerViewController setSubject:_subject];
+			if(_url)
+				[mailComposerViewController setMessageBody:[NSString stringWithFormat:@"%@ %@", _message, _url] isHTML:NO];
 			else
-				[mailComposerViewController setMessageBody:message isHTML:NO];
+				[mailComposerViewController setMessageBody:_message isHTML:NO];
 			[self retain];
-			[self.viewController presentModalViewController:mailComposerViewController animated:YES];
+			[_viewController presentModalViewController:mailComposerViewController animated:YES];
 		}
 		else
 		{
@@ -242,25 +229,25 @@
 	{
 		NSString *completeMessage;
 		
-		if([hashTagArray count])
-			completeMessage = [message stringByAppendingFormat:@" %@", [hashTagArray componentsJoinedByString:@" "]];
+		if([_hashTagArray count])
+			completeMessage = [_message stringByAppendingFormat:@" %@", [_hashTagArray componentsJoinedByString:@" "]];
 		else
-			completeMessage = message;
+			completeMessage = _message;
 			
 		if(((NSClassFromString(@"TWTweetComposeViewController")) != nil) && [TWTweetComposeViewController canSendTweet])
 		{
 			TWTweetComposeViewController *tweetViewController;
 			tweetViewController = [[[TWTweetComposeViewController alloc] init] autorelease];
 			[tweetViewController setInitialText:completeMessage];
-			if(self.url)
-				[tweetViewController addURL:[NSURL URLWithString:self.url]];
-			[self.viewController presentModalViewController:tweetViewController animated:YES];
+			if(_url)
+				[tweetViewController addURL:[NSURL URLWithString:_url]];
+			[_viewController presentModalViewController:tweetViewController animated:YES];
 		}
 		else
 		{
 			
-			if(url)
-				str = [NSString stringWithFormat:SOCIALCONTROLLER_TWITTER_URL, [[NSString stringWithFormat:@"%@ %@", completeMessage, url] stringByAddingPercentEscapesUsingEncoding:NSUTF8StringEncoding]];
+			if(_url)
+				str = [NSString stringWithFormat:SOCIALCONTROLLER_TWITTER_URL, [[NSString stringWithFormat:@"%@ %@", completeMessage, _url] stringByAddingPercentEscapesUsingEncoding:NSUTF8StringEncoding]];
 			else
 				str = [NSString stringWithFormat:SOCIALCONTROLLER_TWITTER_URL, [completeMessage stringByAddingPercentEscapesUsingEncoding:NSUTF8StringEncoding]];
 			if([[UIApplication sharedApplication] canOpenURL:[NSURL URLWithString:str]])
@@ -303,10 +290,10 @@
 			(void)[appDelegate authorizeFacebook:^(BOOL authorized){
 				if(authorized)
 				{
-					if([FBNativeDialogs canPresentShareDialogWithSession:FBSession.activeSession])
+					if([FBDialogs canPresentOSIntegratedShareDialogWithSession:FBSession.activeSession])
 					{
-						[FBNativeDialogs presentShareDialogModallyFrom:viewController initialText:message image:[UIImage imageNamed:@"Icon@2x.png"] url:[url length]?[NSURL URLWithString:url]:nil handler:^(FBNativeDialogResult result, NSError *error) {
-							if(result == FBNativeDialogResultError)
+						[FBDialogs presentOSIntegratedShareDialogModallyFrom:_viewController initialText:_message image:[UIImage imageNamed:@"Icon@2x.png"] url:[_url length]?[NSURL URLWithString:_url]:nil handler:^(FBOSIntegratedShareDialogResult result, NSError *error) {
+							if(result == FBOSIntegratedShareDialogResultError)
 							{
 								NSString *errorMessage = [NSString stringWithFormat:@"There was a problem connecting to Facebook: %@", [error localizedDescription]];
 								[[[[UIAlertView alloc] initWithTitle:@"Error" message:errorMessage delegate:nil cancelButtonTitle:nil otherButtonTitles:@"OK", nil] autorelease] show];
@@ -319,10 +306,10 @@
 						// Retain until delegate methods are called
 						[self retain];
 						self.facebook = [[[Facebook alloc] initWithAppId:FBSession.activeSession.appID andDelegate:nil] autorelease];
-						facebook.accessToken = FBSession.activeSession.accessToken;
-						facebook.expirationDate = FBSession.activeSession.expirationDate;
-						params = [NSMutableDictionary dictionaryWithObjectsAndKeys:message, @"description", facebookUrl, @"link", nil];
-						[facebook dialog:@"feed" andParams:params andDelegate:self];
+						_facebook.accessToken = FBSession.activeSession.accessTokenData.accessToken;
+						_facebook.expirationDate = FBSession.activeSession.accessTokenData.expirationDate;
+						params = [NSMutableDictionary dictionaryWithObjectsAndKeys:_message, @"description", _facebookUrl, @"link", nil];
+						[_facebook dialog:@"feed" andParams:params andDelegate:self];
 					}
 				}
 			}];
