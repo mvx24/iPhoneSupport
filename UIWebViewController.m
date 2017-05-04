@@ -326,6 +326,7 @@
 			if(dismissOnError)
 				[self close:nil];
 		}]];
+		[self presentViewController:alert animated:YES completion:nil];
 	}
 }
 
