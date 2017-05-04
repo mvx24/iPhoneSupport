@@ -11,7 +11,7 @@
 #define CLOSE		@"\u2715"
 #define ABOUT_BLANK	@"about:blank"
 
-@interface UIWebViewController ()
+@interface UIWebViewController () <UIWebViewDelegate>
 {
 @private
 	UIWebView *webView;
@@ -131,7 +131,7 @@
 
 - (void)close:(id)sender
 {
-	[self dismissModalViewControllerAnimated:YES];
+	[self dismissViewControllerAnimated:YES completion:nil];
 }
 
 - (void)setShowToolbar:(BOOL)newShowToolbar
@@ -173,7 +173,6 @@
 			else
 				segmentedControl = [[[UISegmentedControl alloc] initWithItems:[NSArray arrayWithObjects:BACK, FORWARD, nil]] autorelease];
 			segmentedControl.momentary = YES;
-			segmentedControl.segmentedControlStyle = UISegmentedControlStyleBar;
 			[segmentedControl addTarget:self action:@selector(segmentedAction:) forControlEvents:UIControlEventValueChanged];
 			frame = segmentedControl.frame;
 			frame.size.width += 20;
@@ -317,20 +316,17 @@
 
 - (void)webView:(UIWebView *)theWebView didFailLoadWithError:(NSError *)error
 {
+	UIAlertController *alert;
 	[[UIApplication sharedApplication] setNetworkActivityIndicatorVisible:NO];
 	
 	if(error.code != -999)
 	{
-		[[[[UIAlertView alloc] initWithTitle:@"Error" message:[error localizedDescription] delegate:self cancelButtonTitle:@"OK" otherButtonTitles:nil] autorelease] show];
+		alert = [UIAlertController alertControllerWithTitle:@"Error" message:[error localizedDescription] preferredStyle:UIAlertControllerStyleAlert];
+		[alert addAction:[UIAlertAction actionWithTitle:@"OK" style:UIAlertActionStyleDefault handler:^(UIAlertAction *action) {
+			if(dismissOnError)
+				[self close:nil];
+		}]];
 	}
-}
-
-#pragma - UIAlertViewDelegate methods
-
-- (void)alertView:(UIAlertView *)alertView didDismissWithButtonIndex:(NSInteger)buttonIndex
-{
-	if(dismissOnError)
-		[self close:nil];
 }
 
 @end
