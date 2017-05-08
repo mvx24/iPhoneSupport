@@ -55,7 +55,7 @@
 {
 	[super viewDidDisappear:animated];
 	[[UIApplication sharedApplication] setNetworkActivityIndicatorVisible:NO];
-	if(self.navigationController.tabBarController.tabBar.selectedItem == self.navigationController.tabBarItem)
+	if(self.navigationController && [self.navigationController.viewControllers indexOfObject:self] == NSNotFound)
 		[self.webView loadRequest:[NSURLRequest requestWithURL:[NSURL URLWithString:ABOUT_BLANK]]];
 }
 
@@ -281,6 +281,7 @@
 {
 	if(!file)
 		[[UIApplication sharedApplication] setNetworkActivityIndicatorVisible:YES];
+	self.title = @"Loading...";
 }
 
 - (void)webViewDidFinishLoad:(UIWebView *)theWebView
@@ -312,6 +313,7 @@
 		}
 	}
 	[self enableControls];
+	self.title = [webView stringByEvaluatingJavaScriptFromString:@"document.title"];
 }
 
 - (void)webView:(UIWebView *)theWebView didFailLoadWithError:(NSError *)error
